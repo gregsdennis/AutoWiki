@@ -41,7 +41,7 @@ namespace AutoWiki
 
 			var comments = commentFiles.SelectMany(XmlProcessor.Load).ToList();
 
-			var pages = templates.Select(t => t.Generate(assemblies, comments));
+			var pages = templates.Select(t => t.Generate(assemblies, comments)).ToList();
 
 			foreach (var page in pages)
 			{

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Xml.Linq;
 using AutoWiki.Models;
-using Manatee.Json;
 
 namespace AutoWiki.Processors
 {
@@ -52,7 +49,7 @@ namespace AutoWiki.Processors
 				case "M":
 					parts = parts[1].Split(".#ctor");
 					member.MemberType = parts.Length == 1
-						                    ? MemberType.Type
+						                    ? MemberType.Method
 						                    : MemberType.Constructor;
 					member.MemberName = parts[0];
 					break;
@@ -63,22 +60,6 @@ namespace AutoWiki.Processors
 			}
 
 			return member;
-		}
-	}
-
-	internal static class TemplateProcessor
-	{
-		public static Page Generate(this PageTemplate template, List<Assembly> assemblies, List<XmlDocumentation> commentFiles)
-		{
-			throw new NotImplementedException();
-		}
-	}
-
-	internal static class PageGenerator
-	{
-		public static string GenerateMarkdown(this Page page)
-		{
-			throw new NotImplementedException();
 		}
 	}
 }
