@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Manatee.Trello.WebApi</name>
+    </assembly>
+    <members>
+        <member name="T:Manatee.Trello.WebApi.WebApiClientProvider">
+            <summary>
+            Implements IRestClientProvider for WebApi.
+            </summary>
+        </member>
+        <member name="P:Manatee.Trello.WebApi.WebApiClientProvider.RequestProvider">
+            <summary>
+            Creates requests for the client.
+            </summary>
+        </member>
+        <member name="M:Manatee.Trello.WebApi.WebApiClientProvider.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:Manatee.Trello.WebApi.WebApiClientProvider"/> class.
+            </summary>
+        </member>
+        <member name="M:Manatee.Trello.WebApi.WebApiClientProvider.CreateRestClient(System.String)">
+            <summary>
+            Creates an instance of IRestClient.
+            </summary>
+            <param name="apiBaseUrl">The base URL to be used by the client</param>
+            <returns>An instance of IRestClient.</returns>
+        </member>
+        <member name="T:Manatee.Trello.WebApi.WebApiRequestProvider">
+            <summary>
+            Implements IRestRequestProvider for WebApi.
+            </summary>
+        </member>
+        <member name="M:Manatee.Trello.WebApi.WebApiRequestProvider.Create(System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Creates a general request using a collection of objects and an additional parameter to
+            generate the resource string and an object to supply additional parameters.
+            </summary>
+            <param name="endpoint">The method endpoint the request calls.</param>
+            <param name="parameters">A list of paramaters to include in the request.</param>
+            <returns>An IRestRequest instance which can be sent to an IRestClient.</returns>
+        </member>
+        <member name="T:Manatee.Trello.WebApi.WebApiRestResponse">
+            <summary>
+            Implements <see cref="T:Manatee.Trello.Rest.IRestResponse"/> for WebApi.
+            </summary>
+        </member>
+        <member name="P:Manatee.Trello.WebApi.WebApiRestResponse.Content">
+            <summary>
+            The JSON content returned by the call.
+            </summary>
+        </member>
+        <member name="P:Manatee.Trello.WebApi.WebApiRestResponse.Exception">
+            <summary>
+            Gets any exception that was thrown during the call.
+            </summary>
+        </member>
+        <member name="P:Manatee.Trello.WebApi.WebApiRestResponse.StatusCode">
+            <summary>
+            Gets the status code.
+            </summary>
+        </member>
+        <member name="T:Manatee.Trello.WebApi.WebApiRestResponse`1">
+            <summary>
+            Implements <see cref="T:Manatee.Trello.Rest.IRestResponse`1"/> for WebApi.
+            </summary>
+            <typeparam name="T">The type expected to be returned by the call.</typeparam>
+        </member>
+        <member name="P:Manatee.Trello.WebApi.WebApiRestResponse`1.Data">
+            <summary>
+            The deserialized data.
+            </summary>
+        </member>
+    </members>
+</doc>

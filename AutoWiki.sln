@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWiki", "AutoWiki\AutoWiki.csproj", "{FE2E7C51-F233-4240-A374-2F570BF0EBA1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{BD4A82C2-49E7-453C-A739-A8B116197464}"
+	ProjectSection(SolutionItems) = preProject
+		Templates\Actions.json = Templates\Actions.json
+		Templates\Boards.json = Templates\Boards.json
+		Templates\Manatee.Trello.CustomFields.xml = Templates\Manatee.Trello.CustomFields.xml
+		Templates\Manatee.Trello.ManateeJson.xml = Templates\Manatee.Trello.ManateeJson.xml
+		Templates\Manatee.Trello.WebApi.xml = Templates\Manatee.Trello.WebApi.xml
+		Templates\Manatee.Trello.xml = Templates\Manatee.Trello.xml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE2E7C51-F233-4240-A374-2F570BF0EBA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE2E7C51-F233-4240-A374-2F570BF0EBA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE2E7C51-F233-4240-A374-2F570BF0EBA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE2E7C51-F233-4240-A374-2F570BF0EBA1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B2EDC5B-8EFA-4AA4-9F5E-C83B8B16E83B}
+	EndGlobalSection
+EndGlobal

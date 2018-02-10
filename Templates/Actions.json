@@ -1,0 +1,16 @@
+{
+    "sections": [
+        {
+            "assembly": "Manatee.Trello",
+            "type": "Manatee.Trello.Action"
+        },
+        {
+            "assembly": "Manatee.Trello",
+            "type": "Manatee.Trello.ActionData"
+        },
+        {
+            "assembly": "Manatee.Trello",
+            "type": "Manatee.Trello.ActionType"
+        }
+    ]
+}
