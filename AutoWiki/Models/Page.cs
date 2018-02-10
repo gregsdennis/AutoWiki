@@ -1,28 +1,50 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace AutoWiki.Models
 {
 	internal class Page
 	{
 		public string FileName { get; set; }
-		public List<Type> Types { get; } = new List<Type>();
+		public List<TypeDoc> Types { get; } = new List<TypeDoc>();
 	}
 
-	internal class Type
+	internal class TypeDoc : Comment
 	{
-		public System.Type AssociatedType { get; set; }
-
-		public string Assembly { get; set; }
-		public string Namespace { get; set; }
-		public string Name { get; set; }
-		public List<Property> Properties { get; } = new List<Property>();
+		public Type AssociatedType { get; set; }
+		public List<MemberDoc> Members { get; } = new List<MemberDoc>();
 	}
 
-	internal class Property
+	internal abstract class Comment
+	{
+		public List<Tag> Tags { get; } = new List<Tag>();
+	}
+
+	internal class MemberDoc : Comment
+	{
+		public MemberInfo AssociatedMember { get; set; }
+		public MemberType MemberType { get; set; }
+	}
+
+	internal class Tag
 	{
 		public string Name { get; set; }
-		public string Type { get; set; }
-		public Dictionary<string, string> Sections { get; } = new Dictionary<string, string>();
+		public string Text { get; set; }
+	}
+
+	internal class TypeParamTag : Tag
+	{
+		public string ParamName { get; set; }
+	}
+
+	internal class ParamTag : Tag
+	{
+		public string ParamName { get; set; }
+	}
+
+	internal class ExceptionTag : Tag
+	{
+		public string ExceptionType { get; set; }
 	}
 }
-
