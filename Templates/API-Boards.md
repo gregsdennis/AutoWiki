@@ -2,6 +2,21 @@
 
 Represents a board.
 
+## Constructors
+
+### `Board(string id, TrelloAuthorization auth)`
+
+Creates a new instance of the [Manatee.Trello.Board]() object.
+
+**Parameter:** `id`
+
+The board's ID.
+
+**Parameter:** `auth`
+
+(Optional) Custom authorization parameters. When not provided,
+            [Manatee.Trello.TrelloAuthorization.Default]() will be used.
+
 ## Properties
 
 ### `ReadOnlyActionCollection Actions { get; }`
@@ -12,7 +27,7 @@ Gets the collection of actions performed on and within this board.
 
 Gets the collection of cards contained within this board.
 
-### Remarks
+#### Remarks
 
 This property only exposes unarchived cards.
 
@@ -44,7 +59,7 @@ Gets the collection of labels for this board.
 
 Gets the collection of lists on this board.
 
-### Remarks
+#### Remarks
 
 This property only exposes unarchived lists.
 
@@ -64,7 +79,7 @@ Gets or sets the board's name.
 
 Gets or sets the organization to which this board belongs.
 
-### Remarks
+#### Remarks
 
 Setting null makes the board's first admin the owner.
 
@@ -90,9 +105,7 @@ Gets the board's URI.
 
 ## Events
 
-### `Updated`
-
-**Handler Type:** `Action<Board, IEnumerable<string>>`
+### `event Action<Board, IEnumerable<string>> Updated`
 
 Raised when data on the board is updated.
 
@@ -102,7 +115,7 @@ Raised when data on the board is updated.
 
 Deletes the card.
 
-### Remarks
+#### Remarks
 
 This permanently deletes the card from Trello's server, however, this object will
             remain in memory and all properties will remain accessible.
@@ -113,11 +126,11 @@ Marks the board to be refreshed the next time data is accessed.
 
 ### `string ToString()`
 
-**Returns:** A string that represents the current object.
-
 Returns a string that represents the current object.
 
-### Filterpriority
+**Returns:** A string that represents the current object.
+
+#### Filterpriority
 
 2
 
@@ -149,9 +162,7 @@ Gets the membership's permission level.
 
 ## Events
 
-### `Updated`
-
-**Handler Type:** `Action<BoardMembership, IEnumerable<string>>`
+### `event Action<BoardMembership, IEnumerable<string>> Updated`
 
 Raised when data on the membership is updated.
 

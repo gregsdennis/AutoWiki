@@ -2,6 +2,21 @@
 
 Represents an action performed on Trello objects.
 
+## Constructors
+
+### `Action(string id, TrelloAuthorization auth)`
+
+Creates a new [Manatee.Trello.Action]() object.
+
+**Parameter:** `id`
+
+The action's ID.
+
+**Parameter:** `auth`
+
+(Optional) Custom authorization parameters. When not provided,
+            [Manatee.Trello.TrelloAuthorization.Default]() will be used.
+
 ## Properties
 
 ### `DateTime CreationDate { get; }`
@@ -30,9 +45,7 @@ Gets the type of action.
 
 ## Events
 
-### `Updated`
-
-**Handler Type:** `Action<Action, IEnumerable<string>>`
+### `event Action<Action, IEnumerable<string>> Updated`
 
 Raised when data on the action is updated.
 
@@ -42,18 +55,18 @@ Raised when data on the action is updated.
 
 Deletes the card.
 
-### Remarks
+#### Remarks
 
 This permanently deletes the card from Trello's server, however, this object will
             remain in memory and all properties will remain accessible.
 
 ### `string ToString()`
 
-**Returns:** A string that represents the current object.
-
 Returns a string that represents the current object.
 
-### Filterpriority
+**Returns:** A string that represents the current object.
+
+#### Filterpriority
 
 2
 
@@ -107,7 +120,7 @@ Gets an assocated list.
 
 Gets the current list.
 
-### Remarks
+#### Remarks
 
 For some action types, this information may be in the [Manatee.Trello.ActionData.List]()
             or [Manatee.Trello.ActionData.OldList]() properties.
@@ -116,7 +129,7 @@ For some action types, this information may be in the [Manatee.Trello.ActionData
 
 Gets the previous list.
 
-### Remarks
+#### Remarks
 
 For some action types, this information may be in the [Manatee.Trello.ActionData.List]()
             or [Manatee.Trello.ActionData.OldList]() properties.
@@ -133,7 +146,7 @@ Gets the previous description.
 
 Gets the previous list.
 
-### Remarks
+#### Remarks
 
 For some action types, this information may be in the [Manatee.Trello.ActionData.ListAfter]()
             or [Manatee.Trello.ActionData.ListBefore]() properties.
@@ -176,7 +189,7 @@ Enumerates known types of [Manatee.Trello.Action]()s.
 
 Not recognized.  May have been created since the current version of this API.
 
-### Remarks
+#### Remarks
 
 This value is not supported by Trello's API.
 

@@ -59,7 +59,7 @@ namespace AutoWiki.Processors
 							_GenerateMarkdown(builder, method, member.Tags);
 							break;
 						case ConstructorInfo constructor:
-							_GenerateMarkdown(builder, constructor);
+							_GenerateMarkdown(builder, constructor, member.Tags);
 							break;
 						case EventInfo @event:
 							_GenerateMarkdown(builder, @event);
@@ -77,7 +77,7 @@ namespace AutoWiki.Processors
 			{
 				if (tag.Name != "summary")
 				{
-					builder.Header(3, tag.Name.Pascalize());
+					builder.Header(4, tag.Name.Pascalize());
 				}
 				tag.Handled = true;
 				builder.Paragraph(tag.Text);
@@ -111,11 +111,18 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdown(StringBuilder builder, MethodInfo method, IList<Tag> tags)
 		{
-			var name = $"{method.ReturnParameter.ParameterType.CSharpName()} {method.Name}({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.CSharpName()))})";
+			var paramList = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
+			var name = $"{method.ReturnParameter.ParameterType.CSharpName()} {method.Name}({paramList})";
 
 			builder.Header(3, name.AsCode());
-			var paramTags = tags.OfType<ParamTag>().ToList();
+			var summary = tags.FirstOrDefault(t => t.Name == "summary");
+			if (summary != null)
+			{
+				summary.Handled = true;
+				builder.Paragraph(summary.Text);
+			}
 
+			var paramTags = tags.OfType<ParamTag>().ToList();
 			foreach (var parameter in method.GetParameters())
 			{
 				_GenerateMarkdown(builder, parameter, paramTags);
@@ -137,26 +144,38 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event)
 		{
-			builder.Header(3, @event.Name.AsCode());
-			builder.Paragraph($"**Handler Type:** {@event.EventHandlerType.CSharpName().AsCode()}");
+			builder.Header(3, $"event {@event.EventHandlerType.CSharpName()} {@event.Name}".AsCode());
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, ConstructorInfo constructor)
+		private static void _GenerateMarkdown(StringBuilder builder, ConstructorInfo constructor, List<Tag> tags)
 		{
-			builder.Header(3, constructor.Name.AsCode());
-			//builder.Paragraph($"**Type:** {@event.con.CSharpName().AsCode()}");
+			var paramList = string.Join(", ", constructor.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
+			var name = $"{constructor.DeclaringType.Name}({paramList})";
+
+			builder.Header(3, name.AsCode());
+			var summary = tags.FirstOrDefault(t => t.Name == "summary");
+			if (summary != null)
+			{
+				summary.Handled = true;
+				builder.Paragraph(summary.Text);
+			}
+
+			var paramTags = tags.OfType<ParamTag>().ToList();
+			foreach (var parameter in constructor.GetParameters())
+			{
+				_GenerateMarkdown(builder, parameter, paramTags);
+			}
 		}
 
 		private static void _GenerateMarkdown(StringBuilder builder, ParameterInfo parameter, IEnumerable<ParamTag> tags)
 		{
-			builder.Paragraph($"**Parameter:** {parameter.Name}");
-			builder.Paragraph($"  **Type:** {parameter.ParameterType.CSharpName().AsCode()}");
+			builder.Paragraph($"**Parameter:** {parameter.Name.AsCode()}");
 
 			var tag = tags.FirstOrDefault(t => t.ParamName == parameter.Name);
 			if (tag == null) return;
 
 			tag.Handled = true;
-			builder.Paragraph($"  {tag.Text}");
+			builder.Paragraph($"{tag.Text}");
 		}
 	}
 }

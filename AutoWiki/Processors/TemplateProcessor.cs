@@ -37,14 +37,26 @@ namespace AutoWiki.Processors
 			                                               c.MemberType == MemberType.Type);
 			doc.Tags.AddRange(typeComment.Data.Select(_ConvertToTag));
 
-			var memberComments = typeInfo.DeclaredMembers.Where(m => m.IsPublic()).Join(comments,
-			                                                   m => $"{typeInfo.FullName}.{m.Name}",
-			                                                   c => c.MemberName,
-			                                                   (m, c) => new {Member = m, Comment = c});
+			var memberComments = typeInfo.DeclaredMembers
+			                             .Where(m => m.IsPublic())
+			                             .Join(comments,
+			                                   m => _GetMemberName(typeInfo, m),
+			                                   c => c.MemberName,
+			                                   (m, c) => new {Member = m, Comment = c});
 
 			doc.Members.AddRange(memberComments.Select(mc => _ConvertToMember(mc.Member, mc.Comment)));
 
 			return doc;
+		}
+		private static string _GetMemberName(TypeInfo typeInfo, MemberInfo member)
+		{
+			if (member is ConstructorInfo constructor)
+			{
+				var formattableString = $"{typeInfo.FullName}.#ctor({string.Join(",", constructor.GetParameters().Select(p => p.ParameterType.FullName))})";
+				return formattableString;
+			}
+
+			return $"{typeInfo.FullName}.{member.Name}";
 		}
 
 		private static MemberDoc _ConvertToMember(MemberInfo memberInfo, XmlDocumentation member)
@@ -148,7 +160,7 @@ namespace AutoWiki.Processors
 							return $"[{xml.MemberName}]()";
 						// TODO: check for things like <b> for formatting
 						default:
-							throw new NotImplementedException();
+							return element.ToString();
 					}
 				case XText text:
 					return $"{text.Value}";

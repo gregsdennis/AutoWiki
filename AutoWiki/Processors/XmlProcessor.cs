@@ -52,11 +52,11 @@ namespace AutoWiki.Processors
 					member.MemberName = parts[1];
 					break;
 				case "M":
-					parts = parts[1].Split(".#ctor");
-					member.MemberType = parts.Length == 1
-						                    ? MemberType.Method
-						                    : MemberType.Constructor;
-					member.MemberName = parts[0];
+					if (parts[1].Contains("#ctor"))
+						member.MemberType = MemberType.Constructor;
+					else
+						member.MemberType = MemberType.Method;
+					member.MemberName = parts[1];
 					break;
 				case "E":
 					member.MemberType = MemberType.Event;
