@@ -6,7 +6,7 @@ using AutoWiki.Models;
 
 namespace AutoWiki.Processors
 {
-	internal class XmlProcessor
+	internal static class XmlProcessor
 	{
 		public static List<XmlDocumentation> Load(string fileName)
 		{
@@ -29,7 +29,12 @@ namespace AutoWiki.Processors
 					Data = memberNode.Elements().ToList()
 				};
 
-			var nameValue = memberNode.Attribute("name").Value;
+			return memberNode.GetMemberDetails("name", member);
+		}
+
+		public static XmlDocumentation GetMemberDetails(this XElement memberNode, string attributeName, XmlDocumentation member)
+		{
+			var nameValue = memberNode.Attribute(attributeName).Value;
 			var parts = nameValue.Split(":");
 
 			switch (parts[0])

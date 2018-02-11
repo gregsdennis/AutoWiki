@@ -10,15 +10,15 @@ namespace AutoWiki.Models
 		public List<TypeDoc> Types { get; } = new List<TypeDoc>();
 	}
 
+	internal abstract class Comment
+	{
+		public List<Tag> Tags { get; } = new List<Tag>();
+	}
+
 	internal class TypeDoc : Comment
 	{
 		public Type AssociatedType { get; set; }
 		public List<MemberDoc> Members { get; } = new List<MemberDoc>();
-	}
-
-	internal abstract class Comment
-	{
-		public List<Tag> Tags { get; } = new List<Tag>();
 	}
 
 	internal class MemberDoc : Comment

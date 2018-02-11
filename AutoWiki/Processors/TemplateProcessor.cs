@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
 using System.Xml.Linq;
 using AutoWiki.Models;
 
@@ -32,6 +33,10 @@ namespace AutoWiki.Processors
 		{
 			var doc = new TypeDoc {AssociatedType = typeInfo.AsType()};
 
+			var typeComment = comments.FirstOrDefault(c => c.MemberName == typeInfo.FullName &&
+			                                               c.MemberType == MemberType.Type);
+			doc.Tags.AddRange(typeComment.Data.Select(_ConvertToTag));
+
 			var memberComments = typeInfo.DeclaredMembers.Join(comments,
 			                                                   m => $"{typeInfo.FullName}.{m.Name}",
 			                                                   c => c.MemberName,
@@ -57,17 +62,26 @@ namespace AutoWiki.Processors
 
 		private static Tag _ConvertToTag(XElement xml)
 		{
+			Tag tag;
 			switch (xml.Name.LocalName)
 			{
 				case "typeparam":
-					return _ConvertToTypeParamTag(xml);
+					tag = _ConvertToTypeParamTag(xml);
+					break;
 				case "param":
-					return _ConvertToParamTag(xml);
+					tag = _ConvertToParamTag(xml);
+					break;
 				case "exception":
-					return _ConvertToExceptionTag(xml);
+					tag = _ConvertToExceptionTag(xml);
+					break;
 				default:
-					return _ConvertToSimpleTag(xml);
+					tag = _ConvertToSimpleTag(xml);
+					break;
 			}
+
+			tag.Text = string.Concat(xml.Nodes().Select(_ConvertNode)).Trim();
+
+			return tag;
 		}
 
 		private static Tag _ConvertToTypeParamTag(XElement xml)
@@ -75,8 +89,7 @@ namespace AutoWiki.Processors
 			var tag = new TypeParamTag
 				{
 					Name = "typeparam",
-					ParamName = xml.Attribute("name").Value,
-					Text = xml.Value
+					ParamName = xml.Attribute("name").Value
 				};
 
 			return tag;
@@ -87,8 +100,7 @@ namespace AutoWiki.Processors
 			var tag = new ParamTag
 				{
 					Name = "param",
-					ParamName = xml.Attribute("name").Value,
-					Text = xml.Value
+					ParamName = xml.Attribute("name").Value
 				};
 
 			return tag;
@@ -99,8 +111,7 @@ namespace AutoWiki.Processors
 			var tag = new ExceptionTag
 				{
 					Name = "param",
-					ExceptionType = xml.Attribute("cref").Value,
-					Text = xml.Value
+					ExceptionType = xml.Attribute("cref").Value
 				};
 
 			return tag;
@@ -110,11 +121,40 @@ namespace AutoWiki.Processors
 		{
 			var tag = new Tag
 				{
-					Name = xml.Name.LocalName,
-					Text = xml.Value
+					Name = xml.Name.LocalName
 				};
 
 			return tag;
+		}
+
+		/// <summary>
+		/// </summary>
+		/// <param name="xNode"></param>
+		/// <returns></returns>
+		private static string _ConvertNode(XNode xNode)
+		{
+			switch (xNode)
+			{
+				case XElement element:
+					var xml = new XmlDocumentation();
+					switch (element.Name.LocalName)
+					{
+						case "see":
+							element.GetMemberDetails("cref", xml);
+							return $"[{xml.MemberName}]()";
+						case "paramref":
+						case "typeparamref":
+							element.GetMemberDetails("name", xml);
+							return $"[{xml.MemberName}]()";
+						// TODO: check for things like <b> for formatting
+						default:
+							throw new NotImplementedException();
+					}
+				case XText text:
+					return $"{text.Value}";
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 		}
 	}
 }

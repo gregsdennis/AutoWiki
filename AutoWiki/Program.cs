@@ -33,7 +33,7 @@ namespace AutoWiki
 			var templates = jsonFiles.Select(x =>
 				{
 					var template = serializer.Deserialize<PageTemplate>(JsonValue.Parse(File.ReadAllText(x)));
-					template.FileName = x.ChangeExtension(".md");
+					template.FileName = x.ChangeExtension("md");
 					return template;
 				});
 
