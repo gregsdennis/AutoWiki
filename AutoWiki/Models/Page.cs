@@ -31,6 +31,7 @@ namespace AutoWiki.Models
 	{
 		public string Name { get; set; }
 		public string Text { get; set; }
+		public bool Handled { get; set; }
 	}
 
 	internal class TypeParamTag : Tag

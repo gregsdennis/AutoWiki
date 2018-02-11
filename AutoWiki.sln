@@ -7,8 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWiki", "AutoWiki\AutoWi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{BD4A82C2-49E7-453C-A739-A8B116197464}"
 	ProjectSection(SolutionItems) = preProject
-		Templates\Actions.json = Templates\Actions.json
-		Templates\Boards.json = Templates\Boards.json
+		Templates\API-Actions.json = Templates\API-Actions.json
+		Templates\API-Boards.json = Templates\API-Boards.json
 		Templates\Manatee.Trello.CustomFields.xml = Templates\Manatee.Trello.CustomFields.xml
 		Templates\Manatee.Trello.ManateeJson.xml = Templates\Manatee.Trello.ManateeJson.xml
 		Templates\Manatee.Trello.WebApi.xml = Templates\Manatee.Trello.WebApi.xml

@@ -1,17 +1,14 @@
 # `Board`
+
 Represents a board.
 
 ## Properties
-### `Actions`
 
-**Type:** `ReadOnlyActionCollection`
+### `ReadOnlyActionCollection Actions { get; }`
 
 Gets the collection of actions performed on and within this board.
 
-
-### `Cards`
-
-**Type:** `ReadOnlyCardCollection`
+### `ReadOnlyCardCollection Cards { get; }`
 
 Gets the collection of cards contained within this board.
 
@@ -19,52 +16,31 @@ Gets the collection of cards contained within this board.
 
 This property only exposes unarchived cards.
 
-
-### `CreationDate`
-
-**Type:** `DateTime`
+### `DateTime CreationDate { get; }`
 
 Gets the creation date of the board.
 
-
-### `Description`
-
-**Type:** `String`
+### `string Description { get; set; }`
 
 Gets or sets the board's description.
 
-
-### `Id`
-
-**Type:** `String`
+### `string Id { get; }`
 
 Gets the board's ID.
 
-
-### `IsClosed`
-
-**Type:** `Nullable<Boolean>`
+### `bool? IsClosed { get; set; }`
 
 Gets or sets whether this board is closed.
 
-
-### `IsSubscribed`
-
-**Type:** `Nullable<Boolean>`
+### `bool? IsSubscribed { get; set; }`
 
 Gets or sets whether the current member is subscribed to this board.
 
-
-### `Labels`
-
-**Type:** `BoardLabelCollection`
+### `BoardLabelCollection Labels { get; }`
 
 Gets the collection of labels for this board.
 
-
-### `Lists`
-
-**Type:** `ListCollection`
+### `ListCollection Lists { get; }`
 
 Gets the collection of lists on this board.
 
@@ -72,31 +48,19 @@ Gets the collection of lists on this board.
 
 This property only exposes unarchived lists.
 
-
-### `Members`
-
-**Type:** `ReadOnlyMemberCollection`
+### `ReadOnlyMemberCollection Members { get; }`
 
 Gets the collection of members on this board.
 
-
-### `Memberships`
-
-**Type:** `BoardMembershipCollection`
+### `BoardMembershipCollection Memberships { get; }`
 
 Gets the collection of members and their privileges on this board.
 
-
-### `Name`
-
-**Type:** `String`
+### `string Name { get; set; }`
 
 Gets or sets the board's name.
 
-
-### `Organization`
-
-**Type:** `Organization`
+### `Organization Organization { get; set; }`
 
 Gets or sets the organization to which this board belongs.
 
@@ -104,55 +68,37 @@ Gets or sets the organization to which this board belongs.
 
 Setting null makes the board's first admin the owner.
 
-
-### `PowerUps`
-
-**Type:** `ReadOnlyPowerUpCollection`
+### `ReadOnlyPowerUpCollection PowerUps { get; }`
 
 Gets metadata about any active power-ups.
 
-
-### `PowerUpData`
-
-**Type:** `ReadOnlyPowerUpDataCollection`
+### `ReadOnlyPowerUpDataCollection PowerUpData { get; }`
 
 Gets specific data regarding power-ups.
 
-
-### `Preferences`
-
-**Type:** `BoardPreferences`
+### `BoardPreferences Preferences { get; }`
 
 Gets the set of preferences for the board.
 
-
-### `PersonalPreferences`
-
-**Type:** `BoardPersonalPreferences`
+### `BoardPersonalPreferences PersonalPreferences { get; }`
 
 Gets the set of preferences for the board.
 
-
-### `Url`
-
-**Type:** `String`
+### `string Url { get; }`
 
 Gets the board's URI.
 
-
 ## Events
-### `Updated`
-
-Raised when data on the board is updated.
-
 
 ### `Updated`
 
-Raised when data on the board is updated.
+**Handler Type:** `Action<Board, IEnumerable<string>>`
 
+Raised when data on the board is updated.
 
 ## Methods
-### `Delete`
+
+### `void Delete()`
 
 Deletes the card.
 
@@ -161,78 +107,57 @@ Deletes the card.
 This permanently deletes the card from Trello's server, however, this object will
             remain in memory and all properties will remain accessible.
 
-
-### `Refresh`
+### `void Refresh()`
 
 Marks the board to be refreshed the next time data is accessed.
 
+### `string ToString()`
 
-### `ToString`
+**Returns:** A string that represents the current object.
 
 Returns a string that represents the current object.
-
-### Returns
-
-A string that represents the current object.
 
 ### Filterpriority
 
 2
 
-
 # `BoardMembership`
+
 Represents the permission level a member has on a board.
 
 ## Properties
-### `CreationDate`
 
-**Type:** `DateTime`
+### `DateTime CreationDate { get; }`
 
 Gets the creation date of the membership.
 
-
-### `Id`
-
-**Type:** `String`
+### `string Id { get; }`
 
 Gets the membership definition's ID.
 
-
-### `IsDeactivated`
-
-**Type:** `Nullable<Boolean>`
+### `bool? IsDeactivated { get; }`
 
 Gets whether the member has accepted the invitation to join Trello.
 
-
-### `Member`
-
-**Type:** `Member`
+### `Member Member { get; }`
 
 Gets the member.
 
-
-### `MemberType`
-
-**Type:** `Nullable<BoardMembershipType>`
+### `BoardMembershipType? MemberType { get; set; }`
 
 Gets the membership's permission level.
 
-
 ## Events
-### `Updated`
-
-Raised when data on the membership is updated.
-
 
 ### `Updated`
 
-Raised when data on the membership is updated.
+**Handler Type:** `Action<BoardMembership, IEnumerable<string>>`
 
+Raised when data on the membership is updated.
 
 ## Methods
-### `Refresh`
+
+### `void Refresh()`
 
 Marks the board membership to be refreshed the next time data is accessed.
-
 
