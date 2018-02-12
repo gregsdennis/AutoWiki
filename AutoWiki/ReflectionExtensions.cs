@@ -54,11 +54,30 @@ namespace AutoWiki
 			       false;
 		}
 
+		public static IEnumerable<MemberInfo> GetAllMembers(this TypeInfo type)
+		{
+			if (type == null) return Enumerable.Empty<MemberInfo>();
+
+			return type.DeclaredMembers.Union(type.BaseType.GetTypeInfo().DeclaredMembers)
+			           .Distinct(MemberInfoComparer.Instance);
+		}
+
 		private static bool? _IsPublic(EventInfo @event)
 		{
 			if (@event == null) return null;
 
 			return @event.AddMethod.IsPublic || @event.RemoveMethod.IsPublic;
+		}
+
+		public static bool? IsStatic(this MemberInfo member)
+		{
+			return (member as FieldInfo)?.IsStatic ??
+			       (member as PropertyInfo)?.GetMethod?.IsStatic ??
+			       (member as PropertyInfo)?.SetMethod?.IsStatic ??
+			       (member as MethodInfo)?.IsStatic ??
+			       (member as ConstructorInfo)?.IsStatic ??
+			       (member as EventInfo)?.AddMethod?.IsStatic ??
+			       false;
 		}
 	}
 }

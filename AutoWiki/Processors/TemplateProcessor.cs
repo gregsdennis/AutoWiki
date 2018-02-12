@@ -34,7 +34,7 @@ namespace AutoWiki.Processors
 			                                               c.MemberType == MemberType.Type);
 			doc.Tags.AddRange(typeComment.Data.Select(_ConvertToTag));
 
-			var memberComments = typeInfo.DeclaredMembers
+			var memberComments = typeInfo.GetAllMembers()
 			                             .Where(m => m.IsPublic())
 			                             .Join(comments,
 			                                   m => _GetMemberName(typeInfo, m),

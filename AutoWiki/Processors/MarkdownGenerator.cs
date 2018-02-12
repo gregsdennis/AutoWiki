@@ -5,13 +5,13 @@ using System.Reflection;
 using System.Text;
 using AutoWiki.Models;
 using Humanizer;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace AutoWiki.Processors
 {
 	internal static class MarkdownGenerator
 	{
-		private static readonly MemberType[] SortByKeys = new[]
-			{
+		private static readonly MemberType[] SortByKeys = {
 				MemberType.Constructor,
 				MemberType.Field,
 				MemberType.Property,
@@ -39,7 +39,10 @@ namespace AutoWiki.Processors
 
 			_GenerateMarkdown(builder, typeDoc.Tags);
 
-			var sortedMembers = typeDoc.Members.GroupBy(m => m.MemberType)
+			var sortedMembers = typeDoc.Members
+			                           .OrderBy(m => !m.AssociatedMember.IsStatic())
+			                           .ThenBy(m => m.AssociatedMember.Name)
+			                           .GroupBy(m => m.MemberType)
 			                           .SortBy(SortByKeys, g => g.Key);
 
 			foreach (var docGroup in sortedMembers)
@@ -101,6 +104,8 @@ namespace AutoWiki.Processors
 			if (setter?.IsPublic ?? false)
 				set = "set; ";
 			name += $" {{ {get}{set}}}";
+			if ((getter?.IsStatic ?? false) || (setter?.IsStatic ?? false))
+				name = $"static {name}";
 
 			builder.Header(3, name.AsCode(), pageName, $"{property.DeclaringType.FullName}.{property.Name}");
 
@@ -114,8 +119,9 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdown(StringBuilder builder, MethodInfo method, IList<Tag> tags, string pageName)
 		{
+			var isStatic = method.IsStatic ? "static " : null;
 			var paramList = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
-			var name = $"{method.ReturnParameter.ParameterType.CSharpName()} {method.Name}({paramList})";
+			var name = $"{isStatic}{method.ReturnParameter.ParameterType.CSharpName()} {method.Name}({paramList})";
 
 			builder.Header(3, name.AsCode(), pageName, $"{method.DeclaringType.FullName}.{method.Name}");
 			var summary = tags.FirstOrDefault(t => t.Name == "summary");
@@ -147,13 +153,15 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event, string pageName)
 		{
-			builder.Header(3, $"event {@event.EventHandlerType.CSharpName()} {@event.Name}".AsCode(), pageName, $"{@event.DeclaringType.FullName}.{@event.Name}");
+			var isStatic = @event.AddMethod.IsStatic ? "static " : null;
+			builder.Header(3, $"{isStatic}event {@event.EventHandlerType.CSharpName()} {@event.Name}".AsCode(), pageName, $"{@event.DeclaringType.FullName}.{@event.Name}");
 		}
 
 		private static void _GenerateMarkdown(StringBuilder builder, ConstructorInfo constructor, List<Tag> tags, string pageName)
 		{
+			var isStatic = constructor.IsStatic ? "static " : null;
 			var paramList = string.Join(", ", constructor.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
-			var name = $"{constructor.DeclaringType.Name}({paramList})";
+			var name = $"{isStatic}{constructor.DeclaringType.Name}({paramList})";
 
 			builder.Header(3, name.AsCode(), pageName, $"{constructor.DeclaringType.FullName}.{name}");
 			var summary = tags.FirstOrDefault(t => t.Name == "summary");
