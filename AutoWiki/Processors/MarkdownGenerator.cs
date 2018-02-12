@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -7,7 +8,7 @@ using Humanizer;
 
 namespace AutoWiki.Processors
 {
-	internal static class PageGenerator
+	internal static class MarkdownGenerator
 	{
 		private static readonly MemberType[] SortByKeys = new[]
 			{
@@ -22,17 +23,19 @@ namespace AutoWiki.Processors
 		{
 			var builder = new StringBuilder();
 
+			var pageName = Path.GetFileName(page.FileName);
+
 			foreach (var typeDoc in page.Types)
 			{
-				_GenerateMarkdown(builder, typeDoc);
+				_GenerateMarkdown(builder, typeDoc, pageName);
 			}
 
 			return builder.ToString();
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc)
+		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc, string pageName)
 		{
-			builder.Header(1, typeDoc.AssociatedType.CSharpName().AsCode());
+			builder.Header(1, typeDoc.AssociatedType.CSharpName().AsCode(), pageName, typeDoc.AssociatedType.FullName);
 
 			_GenerateMarkdown(builder, typeDoc.Tags);
 
@@ -50,19 +53,19 @@ namespace AutoWiki.Processors
 					switch (member.AssociatedMember)
 					{
 						case PropertyInfo property:
-							_GenerateMarkdown(builder, property, member.Tags.OfType<ParamTag>().ToList());
+							_GenerateMarkdown(builder, property, member.Tags.OfType<ParamTag>().ToList(), pageName);
 							break;
 						case FieldInfo field:
-							_GenerateMarkdown(builder, field);
+							_GenerateMarkdown(builder, field, pageName);
 							break;
 						case MethodInfo method:
-							_GenerateMarkdown(builder, method, member.Tags);
+							_GenerateMarkdown(builder, method, member.Tags, pageName);
 							break;
 						case ConstructorInfo constructor:
-							_GenerateMarkdown(builder, constructor, member.Tags);
+							_GenerateMarkdown(builder, constructor, member.Tags, pageName);
 							break;
 						case EventInfo @event:
-							_GenerateMarkdown(builder, @event);
+							_GenerateMarkdown(builder, @event, pageName);
 							break;
 					}
 
@@ -84,7 +87,7 @@ namespace AutoWiki.Processors
 			}
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, PropertyInfo property, IList<ParamTag> tags)
+		private static void _GenerateMarkdown(StringBuilder builder, PropertyInfo property, IList<ParamTag> tags, string pageName)
 		{
 			var indexes = property.GetIndexParameters();
 			var name = $"{property.PropertyType.CSharpName()} {property.Name}";
@@ -99,7 +102,7 @@ namespace AutoWiki.Processors
 				set = "set; ";
 			name += $" {{ {get}{set}}}";
 
-			builder.Header(3, name.AsCode());
+			builder.Header(3, name.AsCode(), pageName, $"{property.DeclaringType.FullName}.{property.Name}");
 
 			if (!indexes.Any()) return;
 
@@ -109,12 +112,12 @@ namespace AutoWiki.Processors
 			}
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, MethodInfo method, IList<Tag> tags)
+		private static void _GenerateMarkdown(StringBuilder builder, MethodInfo method, IList<Tag> tags, string pageName)
 		{
 			var paramList = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
 			var name = $"{method.ReturnParameter.ParameterType.CSharpName()} {method.Name}({paramList})";
 
-			builder.Header(3, name.AsCode());
+			builder.Header(3, name.AsCode(), pageName, $"{method.DeclaringType.FullName}.{method.Name}");
 			var summary = tags.FirstOrDefault(t => t.Name == "summary");
 			if (summary != null)
 			{
@@ -135,24 +138,24 @@ namespace AutoWiki.Processors
 			builder.Paragraph($"**Returns:** {tag.Text}");
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, FieldInfo field)
+		private static void _GenerateMarkdown(StringBuilder builder, FieldInfo field, string pageName)
 		{
-			builder.Header(3, field.Name.AsCode());
+			builder.Header(3, field.Name.AsCode(), pageName, $"{field.DeclaringType.FullName}.{field.Name}");
 			if (!field.DeclaringType.IsEnum)
 				builder.Paragraph($"**Type:** {field.FieldType.CSharpName().AsCode()}");
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event)
+		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event, string pageName)
 		{
-			builder.Header(3, $"event {@event.EventHandlerType.CSharpName()} {@event.Name}".AsCode());
+			builder.Header(3, $"event {@event.EventHandlerType.CSharpName()} {@event.Name}".AsCode(), pageName, $"{@event.DeclaringType.FullName}.{@event.Name}");
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, ConstructorInfo constructor, List<Tag> tags)
+		private static void _GenerateMarkdown(StringBuilder builder, ConstructorInfo constructor, List<Tag> tags, string pageName)
 		{
 			var paramList = string.Join(", ", constructor.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
 			var name = $"{constructor.DeclaringType.Name}({paramList})";
 
-			builder.Header(3, name.AsCode());
+			builder.Header(3, name.AsCode(), pageName, $"{constructor.DeclaringType.FullName}.{name}");
 			var summary = tags.FirstOrDefault(t => t.Name == "summary");
 			if (summary != null)
 			{

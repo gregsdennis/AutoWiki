@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 using System.Xml.Linq;
 using AutoWiki.Models;
 
@@ -12,9 +11,7 @@ namespace AutoWiki.Processors
 	{
 		public static Page Generate(this PageTemplate template, List<Assembly> assemblies, List<XmlDocumentation> docs)
 		{
-			var page = new Page();
-
-			page.FileName = template.FileName;
+			var page = new Page {FileName = template.FileName};
 
 			foreach (var typeTemplate in template.Templates)
 			{

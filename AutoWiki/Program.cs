@@ -45,7 +45,7 @@ namespace AutoWiki
 
 			foreach (var page in pages)
 			{
-				var markdown = page.GenerateMarkdown();
+				var markdown = page.GenerateMarkdown().ResolveLinks();
 				File.WriteAllText(page.FileName, markdown);
 			}
 		}

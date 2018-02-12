@@ -6,7 +6,7 @@ Represents a board.
 
 ### `Board(string id, TrelloAuthorization auth)`
 
-Creates a new instance of the [Manatee.Trello.Board]() object.
+Creates a new instance of the [`Board`](API-Boards.md#-board-) object.
 
 **Parameter:** `id`
 
@@ -15,7 +15,7 @@ The board's ID.
 **Parameter:** `auth`
 
 (Optional) Custom authorization parameters. When not provided,
-            [Manatee.Trello.TrelloAuthorization.Default]() will be used.
+            Manatee.Trello.TrelloAuthorization.Default will be used.
 
 ## Properties
 
