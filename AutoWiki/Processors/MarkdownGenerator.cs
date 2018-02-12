@@ -5,13 +5,13 @@ using System.Reflection;
 using System.Text;
 using AutoWiki.Models;
 using Humanizer;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace AutoWiki.Processors
 {
 	internal static class MarkdownGenerator
 	{
-		private static readonly MemberType[] SortByKeys = {
+		private static readonly MemberType[] SortByKeys =
+			{
 				MemberType.Constructor,
 				MemberType.Field,
 				MemberType.Property,
@@ -23,7 +23,7 @@ namespace AutoWiki.Processors
 		{
 			var builder = new StringBuilder();
 
-			var pageName = Path.GetFileName(page.FileName);
+			var pageName = Path.GetFileNameWithoutExtension(page.FileName);
 
 			foreach (var typeDoc in page.Types)
 			{
@@ -104,10 +104,12 @@ namespace AutoWiki.Processors
 			if (setter?.IsPublic ?? false)
 				set = "set; ";
 			name += $" {{ {get}{set}}}";
-			if ((getter?.IsStatic ?? false) || (setter?.IsStatic ?? false))
+			var isStatic = (getter?.IsStatic ?? false) || (setter?.IsStatic ?? false);
+			if (isStatic)
 				name = $"static {name}";
 
-			builder.Header(3, name.AsCode(), pageName, $"{property.DeclaringType.FullName}.{property.Name}");
+			var linkText = isStatic ? $"{property.DeclaringType.Name}.{property.Name}" : property.Name;
+			builder.Header(3, name.AsCode(), pageName, $"{property.DeclaringType.FullName}.{property.Name}", linkText);
 
 			if (!indexes.Any()) return;
 

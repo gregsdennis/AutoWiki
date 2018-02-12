@@ -43,10 +43,16 @@ namespace AutoWiki
 
 			var pages = templates.Select(t => t.Generate(assemblies, comments)).ToList();
 
-			foreach (var page in pages)
+			var markdownPages = pages.Select(p => new
+				{
+					Markdown = p.GenerateMarkdown(),
+					File = p.FileName
+				}).ToList();
+
+			foreach (var page in markdownPages)
 			{
-				var markdown = page.GenerateMarkdown().ResolveLinks();
-				File.WriteAllText(page.FileName, markdown);
+				var markdown = page.Markdown.ResolveLinks();
+				File.WriteAllText(page.File, markdown);
 			}
 		}
 
