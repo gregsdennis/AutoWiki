@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using AutoWiki.Models;
 
@@ -7,6 +8,7 @@ namespace AutoWiki.Processors
 	internal static class LinkResolver
 	{
 		public static readonly Regex LinkPattern = new Regex(@"\[(?<name>.*?)]\(\)");
+		public static readonly Regex NullablePattern = new Regex(@"Nullable`1\[\[(?<name>[^,]+)");
 
 		public static void ValidateLinks()
 		{
@@ -27,6 +29,14 @@ namespace AutoWiki.Processors
 						type = null;
 					}
 					var resolvedLink = LinkCache.ResolveLink(type?.CSharpName() ?? name);
+					var nullableMatches = NullablePattern.Matches(name);
+					if (nullableMatches.FirstOrDefault()?.Groups["name"].Success ?? false)
+					{
+						var nullableName = nullableMatches.FirstOrDefault().Groups["name"].Value;
+						var nullableLink = LinkCache.ResolveLink(nullableName);
+						if (nullableName != nullableLink)
+							resolvedLink = $"{nullableLink}?";
+					}
 					link.Markdown = link.Markdown.Replace($"[{name}]()", resolvedLink);
 				}
 			}

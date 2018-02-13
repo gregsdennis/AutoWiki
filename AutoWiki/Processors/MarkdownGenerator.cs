@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -55,7 +56,20 @@ namespace AutoWiki.Processors
 		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc)
 		{
 			builder.Header(1, typeDoc.AssociatedType.CSharpName());
+			// TODO: Add generic type contraints
 
+			// TODO: Add type hierarchy
+			// TODO: Add assembly
+
+			if (typeDoc.AssociatedType.IsGenericType)
+			{
+				var generic = typeDoc.AssociatedType.GetGenericTypeDefinition();
+				var typeParamTags = typeDoc.Tags.OfType<TypeParamTag>().ToList();
+				foreach (var parameter in generic.GetTypeInfo().GenericTypeParameters)
+				{
+					_GenerateMarkdown(builder, parameter, typeParamTags);
+				}
+			}
 			_GenerateMarkdown(builder, typeDoc.Tags);
 
 			var sortedMembers = typeDoc.Members
@@ -156,6 +170,15 @@ namespace AutoWiki.Processors
 				builder.Paragraph(summary.Text);
 			}
 
+			if (method.IsGenericMethod)
+			{
+				var generic = method.GetGenericMethodDefinition();
+				var typeParamTags = tags.OfType<TypeParamTag>().ToList();
+				foreach (var parameter in generic.GetGenericArguments())
+				{
+					_GenerateMarkdown(builder, parameter, typeParamTags);
+				}
+			}
 			var paramTags = tags.OfType<ParamTag>().ToList();
 			foreach (var parameter in method.GetParameters())
 			{
@@ -189,7 +212,9 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdownForLink(Link link, FieldInfo field)
 		{
-			var markdown = $"{field.FieldType.AsLinkRequest()} {field.Name}";
+			var isEnum = field.DeclaringType.IsEnum;
+			var type = isEnum ? null : $"{field.FieldType.AsLinkRequest()} ";
+			var markdown = $"{type}{field.Name}";
 			if (field.IsStatic)
 				markdown = $"static {markdown}";
 
@@ -251,6 +276,17 @@ namespace AutoWiki.Processors
 		private static void _GenerateMarkdown(StringBuilder builder, ParameterInfo parameter, IEnumerable<ParamTag> tags)
 		{
 			builder.Paragraph($"**Parameter:** {parameter.Name}");
+
+			var tag = tags.FirstOrDefault(t => t.ParamName == parameter.Name);
+			if (tag == null) return;
+
+			tag.Handled = true;
+			builder.Paragraph($"{tag.Text}");
+		}
+
+		private static void _GenerateMarkdown(StringBuilder builder, Type parameter, IEnumerable<TypeParamTag> tags)
+		{
+			builder.Paragraph($"**Type Parameter:** {parameter.Name}");
 
 			var tag = tags.FirstOrDefault(t => t.ParamName == parameter.Name);
 			if (tag == null) return;

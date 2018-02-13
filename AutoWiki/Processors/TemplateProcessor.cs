@@ -18,9 +18,11 @@ namespace AutoWiki.Processors
 			{
 				var assembly = assemblies.FirstOrDefault(a => a.GetName().Name == typeTemplate.Assembly);
 				var comments = docs.Where(d => d.AssemblyName == typeTemplate.Assembly &&
-				                               d.MemberName.StartsWith(typeTemplate.Type))
-				                   .ToList();
+											   d.MemberName.StartsWith(typeTemplate.Type))
+								   .ToList();
 				var type = assembly.DefinedTypes.FirstOrDefault(t => t.FullName == typeTemplate.Type);
+				if (type == null)
+					throw new ArgumentException($"Could not find type '{typeTemplate.Type}'");
 				page.Types.Add(_GenerateTypeDoc(type, comments, Path.GetFileNameWithoutExtension(template.FileName)));
 			}
 
@@ -35,15 +37,15 @@ namespace AutoWiki.Processors
 			var doc = new TypeDoc {AssociatedType = typeInfo.AsType()};
 
 			var typeComment = comments.FirstOrDefault(c => c.MemberName == typeInfo.FullName &&
-			                                               c.MemberType == MemberType.Type);
+														   c.MemberType == MemberType.Type);
 			doc.Tags.AddRange(typeComment.Data.Select(_ConvertToTag));
 
 			var memberComments = typeInfo.GetAllMembers()
-			                             .Where(m => m.IsPublic())
-			                             .Join(comments,
-			                                   m => _GetMemberName(typeInfo, m),
-			                                   c => c.MemberName,
-			                                   (m, c) => new {Member = m, Comment = c});
+										 .Where(m => m.IsPublic())
+										 .Join(comments,
+											   m => _GetMemberName(typeInfo, m),
+											   c => c.MemberName,
+											   (m, c) => new {Member = m, Comment = c});
 
 			doc.Members.AddRange(memberComments.Select(mc => _ConvertToMember(mc.Member, mc.Comment, fileName)));
 
@@ -63,8 +65,8 @@ namespace AutoWiki.Processors
 		private static MemberDoc _ConvertToMember(MemberInfo memberInfo, XmlDocumentation member, string fileName)
 		{
 			var link = LinkCache.SetLink(memberInfo.GetLinkKey(),
-			                             (memberInfo.IsStatic() ?? false) ? $"{memberInfo.DeclaringType.Name}.{memberInfo.Name}" : memberInfo.Name,
-			                             fileName);
+										 (memberInfo.IsStatic() ?? false) ? $"{memberInfo.DeclaringType.Name}.{memberInfo.Name}" : memberInfo.Name,
+										 fileName);
 			MarkdownGenerator.UpdateLinkForMember(link, memberInfo);
 
 			var doc = new MemberDoc
