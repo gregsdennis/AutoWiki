@@ -28,7 +28,7 @@ namespace AutoWiki.Processors
 				_GenerateMarkdown(builder, typeDoc);
 			}
 
-			return builder.ToString();
+			return builder.ToString().AddTableOfContents();
 		}
 
 		public static void UpdateLinkForMember(Link link, MemberInfo member)
@@ -215,7 +215,7 @@ namespace AutoWiki.Processors
 			var isEnum = field.DeclaringType.IsEnum;
 			var type = isEnum ? null : $"{field.FieldType.AsLinkRequest()} ";
 			var markdown = $"{type}{field.Name}";
-			if (field.IsStatic)
+			if (field.IsStatic && !isEnum)
 				markdown = $"static {markdown}";
 
 			var linkText = field.IsStatic ? $"{field.DeclaringType.Name}.{field.Name}" : field.Name;

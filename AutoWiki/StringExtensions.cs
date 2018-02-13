@@ -11,5 +11,10 @@ namespace AutoWiki
 
 			return Path.Combine(directory, $"{rawFileName}.{newExtension}");
 		}
+
+		public static string AddTableOfContents(this string page)
+		{
+			return page;
+		}
 	}
 }
