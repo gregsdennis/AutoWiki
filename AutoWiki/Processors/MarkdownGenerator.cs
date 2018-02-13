@@ -171,7 +171,7 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdownForLink(Link link, MethodInfo method)
 		{
-			var markdown = $"{method.ReturnType.CSharpName()} {method.Name}{method.GetParameterList()}";
+			var markdown = $"{method.ReturnType.AsLinkRequest()} {method.Name}{method.GetParameterList()}";
 			if (method.IsStatic)
 				markdown = $"static {markdown}";
 
@@ -189,7 +189,7 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdownForLink(Link link, FieldInfo field)
 		{
-			var markdown = $"{field.FieldType.CSharpName()} {field.Name}";
+			var markdown = $"{field.FieldType.AsLinkRequest()} {field.Name}";
 			if (field.IsStatic)
 				markdown = $"static {markdown}";
 
@@ -207,7 +207,7 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdownForLink(Link link, EventInfo @event)
 		{
-			var markdown = $"{@event.EventHandlerType.CSharpName()} {@event.Name}";
+			var markdown = $"{@event.EventHandlerType.AsLinkRequest()} {@event.Name}";
 			if (@event.AddMethod.IsStatic)
 				markdown = $"static {markdown}";
 
