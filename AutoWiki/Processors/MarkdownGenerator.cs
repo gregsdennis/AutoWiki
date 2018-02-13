@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -23,19 +22,39 @@ namespace AutoWiki.Processors
 		{
 			var builder = new StringBuilder();
 
-			var pageName = Path.GetFileNameWithoutExtension(page.FileName);
-
 			foreach (var typeDoc in page.Types)
 			{
-				_GenerateMarkdown(builder, typeDoc, pageName);
+				_GenerateMarkdown(builder, typeDoc);
 			}
 
 			return builder.ToString();
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc, string pageName)
+		public static void UpdateLinkForMember(Link link, MemberInfo member)
 		{
-			builder.Header(1, typeDoc.AssociatedType.CSharpName().AsCode(), pageName, typeDoc.AssociatedType.FullName);
+			switch (member)
+			{
+				case PropertyInfo property:
+					_GenerateMarkdownForLink(link, property);
+					break;
+				case FieldInfo field:
+					_GenerateMarkdownForLink(link, field);
+					break;
+				case MethodInfo method:
+					_GenerateMarkdownForLink(link, method);
+					break;
+				case ConstructorInfo constructor:
+					_GenerateMarkdownForLink(link, constructor);
+					break;
+				case EventInfo @event:
+					_GenerateMarkdownForLink(link, @event);
+					break;
+			}
+		}
+
+		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc)
+		{
+			builder.Header(1, typeDoc.AssociatedType.CSharpName());
 
 			_GenerateMarkdown(builder, typeDoc.Tags);
 
@@ -56,19 +75,19 @@ namespace AutoWiki.Processors
 					switch (member.AssociatedMember)
 					{
 						case PropertyInfo property:
-							_GenerateMarkdown(builder, property, member.Tags.OfType<ParamTag>().ToList(), pageName);
+							_GenerateMarkdown(builder, property, member.Tags.OfType<ParamTag>().ToList());
 							break;
 						case FieldInfo field:
-							_GenerateMarkdown(builder, field, pageName);
+							_GenerateMarkdown(builder, field);
 							break;
 						case MethodInfo method:
-							_GenerateMarkdown(builder, method, member.Tags, pageName);
+							_GenerateMarkdown(builder, method, member.Tags);
 							break;
 						case ConstructorInfo constructor:
-							_GenerateMarkdown(builder, constructor, member.Tags, pageName);
+							_GenerateMarkdown(builder, constructor, member.Tags);
 							break;
 						case EventInfo @event:
-							_GenerateMarkdown(builder, @event, pageName);
+							_GenerateMarkdown(builder, @event);
 							break;
 					}
 
@@ -90,27 +109,12 @@ namespace AutoWiki.Processors
 			}
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, PropertyInfo property, IList<ParamTag> tags, string pageName)
+		private static void _GenerateMarkdown(StringBuilder builder, PropertyInfo property, IList<ParamTag> tags)
 		{
+			var link = LinkCache.GetLink(property.GetLinkKey());
+			builder.Header(3, link.Markdown);
+
 			var indexes = property.GetIndexParameters();
-			var name = $"{property.PropertyType.CSharpName()} {property.Name}";
-			if (indexes.Any())
-				name += $"[{string.Join(", ", indexes.Select(i => i.ParameterType.CSharpName()))}]";
-			var getter = property.GetMethod;
-			var setter = property.SetMethod;
-			string get = null, set = null;
-			if (getter?.IsPublic ?? false)
-				get = "get; ";
-			if (setter?.IsPublic ?? false)
-				set = "set; ";
-			name += $" {{ {get}{set}}}";
-			var isStatic = (getter?.IsStatic ?? false) || (setter?.IsStatic ?? false);
-			if (isStatic)
-				name = $"static {name}";
-
-			var linkText = isStatic ? $"{property.DeclaringType.Name}.{property.Name}" : property.Name;
-			builder.Header(3, name.AsCode(), pageName, $"{property.DeclaringType.FullName}.{property.Name}", linkText);
-
 			if (!indexes.Any()) return;
 
 			foreach (var index in indexes)
@@ -119,13 +123,32 @@ namespace AutoWiki.Processors
 			}
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, MethodInfo method, IList<Tag> tags, string pageName)
+		private static void _GenerateMarkdownForLink(Link link, PropertyInfo property)
 		{
-			var isStatic = method.IsStatic ? "static " : null;
-			var paramList = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
-			var name = $"{isStatic}{method.ReturnParameter.ParameterType.CSharpName()} {method.Name}({paramList})";
+			var markdown = $"{property.PropertyType.AsLinkRequest()} {property.Name}{property.GetParameterList()}";
+			var getter = property.GetMethod;
+			var setter = property.SetMethod;
+			string get = null, set = null;
+			if (getter?.IsPublic ?? false)
+				get = "get; ";
+			if (setter?.IsPublic ?? false)
+				set = "set; ";
+			markdown += $" {{ {get}{set}}}";
+			var isStatic = (getter?.IsStatic ?? false) || (setter?.IsStatic ?? false);
+			if (isStatic)
+				markdown = $"static {markdown}";
 
-			builder.Header(3, name.AsCode(), pageName, $"{method.DeclaringType.FullName}.{method.Name}");
+			var linkText = isStatic ? $"{property.DeclaringType.Name}.{property.Name}" : property.Name;
+
+			link.Text = linkText;
+			link.Markdown = markdown;
+		}
+
+		private static void _GenerateMarkdown(StringBuilder builder, MethodInfo method, IList<Tag> tags)
+		{
+			var link = LinkCache.GetLink(method.GetLinkKey());
+			builder.Header(3, link.Markdown);
+
 			var summary = tags.FirstOrDefault(t => t.Name == "summary");
 			if (summary != null)
 			{
@@ -146,26 +169,59 @@ namespace AutoWiki.Processors
 			builder.Paragraph($"**Returns:** {tag.Text}");
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, FieldInfo field, string pageName)
+		private static void _GenerateMarkdownForLink(Link link, MethodInfo method)
 		{
-			builder.Header(3, field.Name.AsCode(), pageName, $"{field.DeclaringType.FullName}.{field.Name}");
-			if (!field.DeclaringType.IsEnum)
-				builder.Paragraph($"**Type:** {field.FieldType.CSharpName().AsCode()}");
+			var markdown = $"{method.ReturnType.CSharpName()} {method.Name}{method.GetParameterList()}";
+			if (method.IsStatic)
+				markdown = $"static {markdown}";
+
+			var linkText = method.IsStatic ? $"{method.DeclaringType.Name}.{method.Name}" : method.Name;
+
+			link.Text = linkText;
+			link.Markdown = markdown;
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event, string pageName)
+		private static void _GenerateMarkdown(StringBuilder builder, FieldInfo field)
 		{
-			var isStatic = @event.AddMethod.IsStatic ? "static " : null;
-			builder.Header(3, $"{isStatic}event {@event.EventHandlerType.CSharpName()} {@event.Name}".AsCode(), pageName, $"{@event.DeclaringType.FullName}.{@event.Name}");
+			var link = LinkCache.GetLink(field.GetLinkKey());
+			builder.Header(3, link.Markdown);
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, ConstructorInfo constructor, List<Tag> tags, string pageName)
+		private static void _GenerateMarkdownForLink(Link link, FieldInfo field)
 		{
-			var isStatic = constructor.IsStatic ? "static " : null;
-			var paramList = string.Join(", ", constructor.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"));
-			var name = $"{isStatic}{constructor.DeclaringType.Name}({paramList})";
+			var markdown = $"{field.FieldType.CSharpName()} {field.Name}";
+			if (field.IsStatic)
+				markdown = $"static {markdown}";
 
-			builder.Header(3, name.AsCode(), pageName, $"{constructor.DeclaringType.FullName}.{name}");
+			var linkText = field.IsStatic ? $"{field.DeclaringType.Name}.{field.Name}" : field.Name;
+
+			link.Text = linkText;
+			link.Markdown = markdown;
+		}
+
+		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event)
+		{
+			var link = LinkCache.GetLink(@event.GetLinkKey());
+			builder.Header(3, link.Markdown);
+		}
+
+		private static void _GenerateMarkdownForLink(Link link, EventInfo @event)
+		{
+			var markdown = $"{@event.EventHandlerType.CSharpName()} {@event.Name}";
+			if (@event.AddMethod.IsStatic)
+				markdown = $"static {markdown}";
+
+			var linkText = @event.AddMethod.IsStatic ? $"{@event.DeclaringType.Name}.{@event.Name}" : @event.Name;
+
+			link.Text = linkText;
+			link.Markdown = markdown;
+		}
+
+		private static void _GenerateMarkdown(StringBuilder builder, ConstructorInfo constructor, List<Tag> tags)
+		{
+			var link = LinkCache.GetLink(constructor.GetLinkKey());
+			builder.Header(3, link.Markdown);
+
 			var summary = tags.FirstOrDefault(t => t.Name == "summary");
 			if (summary != null)
 			{
@@ -180,9 +236,21 @@ namespace AutoWiki.Processors
 			}
 		}
 
+		private static void _GenerateMarkdownForLink(Link link, ConstructorInfo method)
+		{
+			var markdown = $"{method.DeclaringType.CSharpName()}{method.GetParameterList()}";
+			if (method.IsStatic)
+				markdown = $"static {markdown}";
+
+			var linkText = method.IsStatic ? $"{method.DeclaringType.Name}.{method.Name}" : method.Name;
+
+			link.Text = linkText;
+			link.Markdown = markdown;
+		}
+
 		private static void _GenerateMarkdown(StringBuilder builder, ParameterInfo parameter, IEnumerable<ParamTag> tags)
 		{
-			builder.Paragraph($"**Parameter:** {parameter.Name.AsCode()}");
+			builder.Paragraph($"**Parameter:** {parameter.Name}");
 
 			var tag = tags.FirstOrDefault(t => t.ParamName == parameter.Name);
 			if (tag == null) return;

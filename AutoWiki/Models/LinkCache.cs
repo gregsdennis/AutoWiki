@@ -4,33 +4,28 @@ namespace AutoWiki.Models
 {
 	internal static class LinkCache
 	{
-		private static readonly Dictionary<string, Link> Cache = new Dictionary<string, Link>();
+		public static readonly Dictionary<string, Link> Cache = new Dictionary<string, Link>();
 
-		public static void SetLink(string key, string text, string page, string header)
+		public static Link SetLink(string key, string text, string page)
 		{
-			Cache[key] = new Link
+			var link = new Link
 				{
 					Text = text,
-					Page = page,
-					Header = header
+					Page = page
 				};
+			Cache[key] = link;
+
+			return link;
 		}
 
-		public static string GetLink(string text)
+		public static Link GetLink(string key)
 		{
-			return Cache.TryGetValue(text, out var link) ? link.ToString() : text;
+			return Cache.TryGetValue(key, out var link) ? link : null;
 		}
-	}
 
-	internal class Link
-	{
-		public string Text { get; set; }
-		public string Page { get; set; }
-		public string Header { get; set; }
-
-		public override string ToString()
+		public static string ResolveLink(string key, string alternateText = null)
 		{
-			return $"[{Text}]({Page}#{Header})";
+			return Cache.TryGetValue(key, out var link) ? link.ToString() : alternateText ?? key;
 		}
 	}
 }

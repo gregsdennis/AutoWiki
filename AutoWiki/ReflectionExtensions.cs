@@ -74,10 +74,35 @@ namespace AutoWiki
 			return (member as FieldInfo)?.IsStatic ??
 			       (member as PropertyInfo)?.GetMethod?.IsStatic ??
 			       (member as PropertyInfo)?.SetMethod?.IsStatic ??
-			       (member as MethodInfo)?.IsStatic ??
-			       (member as ConstructorInfo)?.IsStatic ??
+			       (member as MethodBase)?.IsStatic ??
 			       (member as EventInfo)?.AddMethod?.IsStatic ??
 			       false;
+		}
+
+		public static string GetParameterList(this MemberInfo member)
+		{
+			switch (member)
+			{
+				case MethodBase method:
+					return $"({string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"))})";
+				case PropertyInfo property:
+					var indexes = property.GetIndexParameters();
+					if (indexes.Any())
+						return $"[{string.Join(", ", indexes.Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"))}]";
+					return null;
+				default:
+					return null;
+			}
+		}
+
+		public static string GetLinkKey(this MemberInfo member)
+		{
+			return $"{member.DeclaringType?.FullName}.{member.Name}{member.GetParameterList()}";
+		}
+
+		public static string AsLinkRequest(this Type type)
+		{
+			return $"[{type.FullName}]()";
 		}
 	}
 }

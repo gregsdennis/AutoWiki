@@ -37,11 +37,13 @@ namespace AutoWiki
 					return template;
 				});
 
-			var assemblies = assemblyFiles.Select(Assembly.LoadFile).ToList();
+			var assemblies = assemblyFiles.Select(Assembly.LoadFrom).ToList();
 
 			var comments = commentFiles.SelectMany(XmlProcessor.Load).ToList();
 
 			var pages = templates.Select(t => t.Generate(assemblies, comments)).ToList();
+
+			LinkResolver.ValidateLinks();
 
 			var markdownPages = pages.Select(p => new
 				{

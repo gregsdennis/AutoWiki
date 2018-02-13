@@ -11,10 +11,5 @@ namespace AutoWiki
 
 			return Path.Combine(directory, $"{rawFileName}.{newExtension}");
 		}
-
-		public static string AsCode(this string text)
-		{
-			return $"`{text}`";
-		}
 	}
 }

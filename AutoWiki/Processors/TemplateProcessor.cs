@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
@@ -20,14 +21,17 @@ namespace AutoWiki.Processors
 				                               d.MemberName.StartsWith(typeTemplate.Type))
 				                   .ToList();
 				var type = assembly.DefinedTypes.FirstOrDefault(t => t.FullName == typeTemplate.Type);
-				page.Types.Add(_GenerateTypeDoc(type, comments));
+				page.Types.Add(_GenerateTypeDoc(type, comments, Path.GetFileNameWithoutExtension(template.FileName)));
 			}
 
 			return page;
 		}
 
-		private static TypeDoc _GenerateTypeDoc(TypeInfo typeInfo, List<XmlDocumentation> comments)
+		private static TypeDoc _GenerateTypeDoc(TypeInfo typeInfo, List<XmlDocumentation> comments, string fileName)
 		{
+			var link = LinkCache.SetLink(typeInfo.FullName, typeInfo.Name, fileName);
+			link.Markdown = typeInfo.Name;
+
 			var doc = new TypeDoc {AssociatedType = typeInfo.AsType()};
 
 			var typeComment = comments.FirstOrDefault(c => c.MemberName == typeInfo.FullName &&
@@ -41,7 +45,7 @@ namespace AutoWiki.Processors
 			                                   c => c.MemberName,
 			                                   (m, c) => new {Member = m, Comment = c});
 
-			doc.Members.AddRange(memberComments.Select(mc => _ConvertToMember(mc.Member, mc.Comment)));
+			doc.Members.AddRange(memberComments.Select(mc => _ConvertToMember(mc.Member, mc.Comment, fileName)));
 
 			return doc;
 		}
@@ -56,8 +60,13 @@ namespace AutoWiki.Processors
 			return $"{typeInfo.FullName}.{member.Name}";
 		}
 
-		private static MemberDoc _ConvertToMember(MemberInfo memberInfo, XmlDocumentation member)
+		private static MemberDoc _ConvertToMember(MemberInfo memberInfo, XmlDocumentation member, string fileName)
 		{
+			var link = LinkCache.SetLink(memberInfo.GetLinkKey(),
+			                             (memberInfo.IsStatic() ?? false) ? $"{memberInfo.DeclaringType.Name}.{memberInfo.Name}" : memberInfo.Name,
+			                             fileName);
+			MarkdownGenerator.UpdateLinkForMember(link, memberInfo);
+
 			var doc = new MemberDoc
 				{
 					AssociatedMember = memberInfo,
