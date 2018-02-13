@@ -6,7 +6,7 @@ namespace AutoWiki.Processors
 {
 	internal static class LinkResolver
 	{
-		private static readonly Regex LinkPattern = new Regex(@"\[(?<name>.*?)]\(\)");
+		public static readonly Regex LinkPattern = new Regex(@"\[(?<name>.*?)]\(\)");
 
 		public static void ValidateLinks()
 		{

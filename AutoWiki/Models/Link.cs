@@ -1,9 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AutoWiki.Models
 {
 	internal class Link
 	{
+		public static readonly Regex LinkPattern = new Regex(@"\[(?<name>.*?)]\(.*?\)");
+
 		private string _header;
 
 		public string Text { get; set; }
@@ -20,7 +23,15 @@ namespace AutoWiki.Models
 		{
 			if (content == null) return null;
 
-			var link = Regex.Replace(content, @"[^\w\s]", string.Empty);
+			string link = content;
+			var matches = LinkPattern.Matches(content);
+			var match = matches.FirstOrDefault();
+			if (match?.Groups["name"].Success ?? false)
+			{
+				var name = match.Groups["name"].Value;
+				link = LinkPattern.Replace(link, name);
+			}
+			link = Regex.Replace(link, @"[^\w\s]", string.Empty);
 			link = Regex.Replace(link, @"\s", "-");
 
 			return link.ToLower();
