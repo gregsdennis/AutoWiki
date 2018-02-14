@@ -58,8 +58,11 @@ namespace AutoWiki
 		{
 			if (type == null) return Enumerable.Empty<MemberInfo>();
 
-			return type.DeclaredMembers.Union(type.BaseType.GetTypeInfo().DeclaredMembers)
-			           .Distinct(MemberInfoComparer.Instance);
+			if (type.BaseType != null)
+				return type.DeclaredMembers.Union(type.BaseType.GetTypeInfo().DeclaredMembers)
+				           .Distinct(MemberInfoComparer.Instance);
+
+			return type.DeclaredMembers;
 		}
 
 		private static bool? _IsPublic(EventInfo @event)

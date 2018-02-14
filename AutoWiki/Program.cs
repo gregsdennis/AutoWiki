@@ -53,7 +53,7 @@ namespace AutoWiki
 
 			foreach (var page in markdownPages)
 			{
-				var markdown = page.Markdown.ResolveLinks();
+				var markdown = page.Markdown.ResolveLinks().EscapeForMarkdown();
 				File.WriteAllText(page.File, markdown);
 			}
 		}

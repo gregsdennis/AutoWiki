@@ -31,6 +31,7 @@ namespace AutoWiki.Processors
 
 		private static TypeDoc _GenerateTypeDoc(TypeInfo typeInfo, List<XmlDocumentation> comments, string fileName)
 		{
+			var typeName = typeInfo.Name;
 			var link = LinkCache.SetLink(typeInfo.FullName, typeInfo.Name, fileName);
 			link.Markdown = typeInfo.Name;
 
@@ -53,9 +54,10 @@ namespace AutoWiki.Processors
 		}
 		private static string _GetMemberName(TypeInfo typeInfo, MemberInfo member)
 		{
-			if (member is ConstructorInfo constructor)
+			if (member is MethodBase method)
 			{
-				var formattableString = $"{typeInfo.FullName}.#ctor({string.Join(",", constructor.GetParameters().Select(p => p.ParameterType.FullName))})";
+				var name = method is ConstructorInfo ? "#ctor" : method.Name;
+				var formattableString = $"{typeInfo.FullName}.{name}({string.Join(",", method.GetParameters().Select(p => p.ParameterType.FullName))})";
 				return formattableString;
 			}
 

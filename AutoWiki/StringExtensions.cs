@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Web;
 
 namespace AutoWiki
 {
@@ -10,6 +11,11 @@ namespace AutoWiki
 			var rawFileName = Path.GetFileNameWithoutExtension(fileName);
 
 			return Path.Combine(directory, $"{rawFileName}.{newExtension}");
+		}
+
+		public static string EscapeForMarkdown(this string page)
+		{
+			return HttpUtility.HtmlEncode(page);
 		}
 
 		public static string AddTableOfContents(this string page)

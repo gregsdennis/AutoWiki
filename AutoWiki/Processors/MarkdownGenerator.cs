@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -56,11 +57,6 @@ namespace AutoWiki.Processors
 		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc)
 		{
 			builder.Header(1, typeDoc.AssociatedType.CSharpName());
-			// TODO: Add generic type contraints
-
-			// TODO: Add type hierarchy
-			// TODO: Add assembly
-
 			if (typeDoc.AssociatedType.IsGenericType)
 			{
 				var generic = typeDoc.AssociatedType.GetGenericTypeDefinition();
@@ -70,6 +66,28 @@ namespace AutoWiki.Processors
 					_GenerateMarkdown(builder, parameter, typeParamTags);
 				}
 			}
+
+			_GenerateMarkdown(builder, typeDoc.Tags, "summary");
+
+			builder.Paragraph($"**Assembly:** {Path.GetFileName(typeDoc.AssociatedType.Assembly.Location)}");
+
+			// TODO : list base type & implementations
+
+			var currentType = typeDoc.AssociatedType;
+			var list = new List<string>();
+			while (currentType != null)
+			{
+				list.Add($"- {currentType.CSharpName()}");
+				currentType = currentType.BaseType;
+			}
+			list.Reverse();
+			builder.Paragraph($"**Inheritance hierarchy:**");
+			foreach (var baseClass in list)
+			{
+				builder.AppendLine(baseClass);
+			}
+			builder.AppendLine();
+
 			_GenerateMarkdown(builder, typeDoc.Tags);
 
 			var sortedMembers = typeDoc.Members
@@ -89,10 +107,10 @@ namespace AutoWiki.Processors
 					switch (member.AssociatedMember)
 					{
 						case PropertyInfo property:
-							_GenerateMarkdown(builder, property, member.Tags.OfType<ParamTag>().ToList());
+							_GenerateMarkdown(builder, property, member.Tags.ToList());
 							break;
 						case FieldInfo field:
-							_GenerateMarkdown(builder, field);
+							_GenerateMarkdown(builder, field, member.Tags);
 							break;
 						case MethodInfo method:
 							_GenerateMarkdown(builder, method, member.Tags);
@@ -101,7 +119,7 @@ namespace AutoWiki.Processors
 							_GenerateMarkdown(builder, constructor, member.Tags);
 							break;
 						case EventInfo @event:
-							_GenerateMarkdown(builder, @event);
+							_GenerateMarkdown(builder, @event, member.Tags);
 							break;
 					}
 
@@ -110,30 +128,39 @@ namespace AutoWiki.Processors
 			}
 		}
 
+		private static void _GenerateMarkdown(StringBuilder builder, IEnumerable<Tag> tags, string tagName)
+		{
+			var tag = tags.FirstOrDefault(t => t.Name == tagName);
+
+			if (tag == null) return;
+
+			tag.Handled = true;
+			builder.Paragraph(tag.Text);
+		}
+
 		private static void _GenerateMarkdown(StringBuilder builder, IEnumerable<Tag> tags)
 		{
-			foreach (var tag in tags)
+			foreach (var tag in tags.Where(t => !t.Handled))
 			{
-				if (tag.Name != "summary")
-				{
-					builder.Header(4, tag.Name.Pascalize());
-				}
+				builder.Header(4, tag.Name.Replace("-", " ").Titleize());
 				tag.Handled = true;
 				builder.Paragraph(tag.Text);
 			}
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, PropertyInfo property, IList<ParamTag> tags)
+		private static void _GenerateMarkdown(StringBuilder builder, PropertyInfo property, IList<Tag> tags)
 		{
 			var link = LinkCache.GetLink(property.GetLinkKey());
 			builder.Header(3, link.Markdown);
+
+			_GenerateMarkdown(builder, tags, "summary");
 
 			var indexes = property.GetIndexParameters();
 			if (!indexes.Any()) return;
 
 			foreach (var index in indexes)
 			{
-				_GenerateMarkdown(builder, index, tags);
+				_GenerateMarkdown(builder, index, tags.OfType<ParamTag>());
 			}
 		}
 
@@ -163,12 +190,7 @@ namespace AutoWiki.Processors
 			var link = LinkCache.GetLink(method.GetLinkKey());
 			builder.Header(3, link.Markdown);
 
-			var summary = tags.FirstOrDefault(t => t.Name == "summary");
-			if (summary != null)
-			{
-				summary.Handled = true;
-				builder.Paragraph(summary.Text);
-			}
+			_GenerateMarkdown(builder, tags, "summary");
 
 			if (method.IsGenericMethod)
 			{
@@ -204,10 +226,12 @@ namespace AutoWiki.Processors
 			link.Markdown = markdown;
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, FieldInfo field)
+		private static void _GenerateMarkdown(StringBuilder builder, FieldInfo field, IList<Tag> tags)
 		{
 			var link = LinkCache.GetLink(field.GetLinkKey());
 			builder.Header(3, link.Markdown);
+
+			_GenerateMarkdown(builder, tags, "summary");
 		}
 
 		private static void _GenerateMarkdownForLink(Link link, FieldInfo field)
@@ -224,10 +248,12 @@ namespace AutoWiki.Processors
 			link.Markdown = markdown;
 		}
 
-		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event)
+		private static void _GenerateMarkdown(StringBuilder builder, EventInfo @event, IList<Tag> tags)
 		{
 			var link = LinkCache.GetLink(@event.GetLinkKey());
 			builder.Header(3, link.Markdown);
+
+			_GenerateMarkdown(builder, tags, "summary");
 		}
 
 		private static void _GenerateMarkdownForLink(Link link, EventInfo @event)
@@ -247,12 +273,7 @@ namespace AutoWiki.Processors
 			var link = LinkCache.GetLink(constructor.GetLinkKey());
 			builder.Header(3, link.Markdown);
 
-			var summary = tags.FirstOrDefault(t => t.Name == "summary");
-			if (summary != null)
-			{
-				summary.Handled = true;
-				builder.Paragraph(summary.Text);
-			}
+			_GenerateMarkdown(builder, tags, "summary");
 
 			var paramTags = tags.OfType<ParamTag>().ToList();
 			foreach (var parameter in constructor.GetParameters())
@@ -286,7 +307,24 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdown(StringBuilder builder, Type parameter, IEnumerable<TypeParamTag> tags)
 		{
-			builder.Paragraph($"**Type Parameter:** {parameter.Name}");
+			var text = $"**Type Parameter:** {parameter.Name}";
+
+			var constraints = parameter.GetGenericParameterConstraints();
+			var attributes = parameter.GenericParameterAttributes;
+			var constraintList = new List<string>();
+			if (attributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint))
+				constraintList.Add("class");
+			else if (attributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint))
+				constraintList.Add("struct");
+			constraintList.AddRange(constraints.OrderBy(c => c.IsClass)
+			                                   .Select(constraint => constraint.AsLinkRequest()));
+			if (attributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint))
+				constraintList.Add("new()");
+			if (constraintList.Any())
+			{
+				text += $" : {string.Join(", ", constraintList)}";
+			}
+			builder.Paragraph(text);
 
 			var tag = tags.FirstOrDefault(t => t.ParamName == parameter.Name);
 			if (tag == null) return;
