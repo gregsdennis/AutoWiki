@@ -58,9 +58,11 @@ namespace AutoWiki
 		{
 			if (type == null) return Enumerable.Empty<MemberInfo>();
 
+			// TODO: Include indexers
+
+			var name = type.Name;
 			if (type.BaseType != null)
-				return type.DeclaredMembers.Union(type.BaseType.GetTypeInfo().DeclaredMembers)
-				           .Distinct(MemberInfoComparer.Instance);
+				return type.DeclaredMembers.Union(type.BaseType.GetTypeInfo().GetAllMembers(), MemberInfoComparer.Instance);
 
 			return type.DeclaredMembers;
 		}

@@ -31,7 +31,6 @@ namespace AutoWiki.Processors
 
 		private static TypeDoc _GenerateTypeDoc(TypeInfo typeInfo, List<XmlDocumentation> comments, string fileName)
 		{
-			var typeName = typeInfo.Name;
 			var link = LinkCache.SetLink(typeInfo.FullName, typeInfo.Name, fileName);
 			link.Markdown = typeInfo.Name;
 
@@ -58,6 +57,12 @@ namespace AutoWiki.Processors
 			{
 				var name = method is ConstructorInfo ? "#ctor" : method.Name;
 				var formattableString = $"{typeInfo.FullName}.{name}({string.Join(",", method.GetParameters().Select(p => p.ParameterType.FullName))})";
+				return formattableString;
+			}
+			else if (member is PropertyInfo property)
+			{
+				var name = property.Name;
+				var formattableString = $"{typeInfo.FullName}.{name}({string.Join(",", property.GetIndexParameters().Select(p => p.ParameterType.FullName))})";
 				return formattableString;
 			}
 
@@ -130,10 +135,11 @@ namespace AutoWiki.Processors
 
 		private static Tag _ConvertToExceptionTag(XElement xml)
 		{
+			var details = xml.GetMemberDetails("cref", new XmlDocumentation());
 			var tag = new ExceptionTag
 				{
 					Name = "param",
-					ExceptionType = xml.Attribute("cref").Value
+					ExceptionType = details.MemberName
 				};
 
 			return tag;
@@ -158,16 +164,15 @@ namespace AutoWiki.Processors
 			switch (xNode)
 			{
 				case XElement element:
-					var xml = new XmlDocumentation();
 					switch (element.Name.LocalName)
 					{
 						case "see":
-							element.GetMemberDetails("cref", xml);
+							var xml = element.GetMemberDetails("cref", new XmlDocumentation());
 							return $"[{xml.MemberName}]()";
 						case "paramref":
 						case "typeparamref":
-							element.GetMemberDetails("name", xml);
-							return $"[{xml.MemberName}]()";
+							var attr = element.Attribute("name").Value;
+							return $"*{attr}*";
 						// TODO: check for things like <b> for formatting
 						default:
 							return element.ToString();

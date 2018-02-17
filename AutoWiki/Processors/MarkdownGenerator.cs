@@ -57,6 +57,9 @@ namespace AutoWiki.Processors
 		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc)
 		{
 			builder.Header(1, typeDoc.AssociatedType.CSharpName());
+
+			_GenerateMarkdown(builder, typeDoc.Tags, "summary");
+
 			if (typeDoc.AssociatedType.IsGenericType)
 			{
 				var generic = typeDoc.AssociatedType.GetGenericTypeDefinition();
@@ -66,8 +69,6 @@ namespace AutoWiki.Processors
 					_GenerateMarkdown(builder, parameter, typeParamTags);
 				}
 			}
-
-			_GenerateMarkdown(builder, typeDoc.Tags, "summary");
 
 			builder.Paragraph($"**Assembly:** {Path.GetFileName(typeDoc.AssociatedType.Assembly.Location)}");
 
@@ -123,6 +124,7 @@ namespace AutoWiki.Processors
 							break;
 					}
 
+					_GenerateMarkdown(builder, member.Tags.OfType<ExceptionTag>());
 					_GenerateMarkdown(builder, member.Tags.Where(t => !t.Handled));
 				}
 			}
@@ -166,7 +168,9 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdownForLink(Link link, PropertyInfo property)
 		{
-			var markdown = $"{property.PropertyType.AsLinkRequest()} {property.Name}{property.GetParameterList()}";
+			var propertyList = property.GetParameterList();
+			var name = string.IsNullOrEmpty(propertyList) ? property.Name : "this";
+			var markdown = $"{property.PropertyType.AsLinkRequest()} {name}{property.GetParameterList()}";
 			var getter = property.GetMethod;
 			var setter = property.SetMethod;
 			string get = null, set = null;
@@ -305,6 +309,16 @@ namespace AutoWiki.Processors
 			builder.Paragraph($"{tag.Text}");
 		}
 
+		private static void _GenerateMarkdown(StringBuilder builder, IEnumerable<ExceptionTag> tags)
+		{
+			foreach (var tag in tags)
+			{
+				builder.Paragraph($"**Exception:** {tag.ExceptionType}");
+				tag.Handled = true;
+				builder.Paragraph($"{tag.Text}");
+			}
+		}
+
 		private static void _GenerateMarkdown(StringBuilder builder, Type parameter, IEnumerable<TypeParamTag> tags)
 		{
 			var text = $"**Type Parameter:** {parameter.Name}";
@@ -321,9 +335,9 @@ namespace AutoWiki.Processors
 			if (attributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint))
 				constraintList.Add("new()");
 			if (constraintList.Any())
-			{
 				text += $" : {string.Join(", ", constraintList)}";
-			}
+			else
+				text += " (no constraints)";
 			builder.Paragraph(text);
 
 			var tag = tags.FirstOrDefault(t => t.ParamName == parameter.Name);
