@@ -91,13 +91,15 @@ namespace AutoWiki.Processors
 
 			_GenerateMarkdown(builder, typeDoc.Tags);
 
-			var sortedMembers = typeDoc.Members
-			                           .OrderBy(m => !m.AssociatedMember.IsStatic())
-			                           .ThenBy(m => m.AssociatedMember.Name)
-			                           .GroupBy(m => m.MemberType)
+			var sortedMembers = typeDoc.AssociatedType.IsEnum
+				                    ? (IEnumerable<MemberDoc>) typeDoc.Members
+				                    : typeDoc.Members
+				                             .OrderBy(m => !m.AssociatedMember.IsStatic())
+				                             .ThenBy(m => m.AssociatedMember.Name);
+			var groupedMembers = sortedMembers.GroupBy(m => m.MemberType)
 			                           .SortBy(SortByKeys, g => g.Key);
 
-			foreach (var docGroup in sortedMembers)
+			foreach (var docGroup in groupedMembers)
 			{
 				if (!docGroup.Any()) continue;
 
