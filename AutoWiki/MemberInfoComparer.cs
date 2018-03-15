@@ -12,8 +12,7 @@ namespace AutoWiki
 
 		public bool Equals(MemberInfo x, MemberInfo y)
 		{
-			return x.DeclaringType == y.DeclaringType &&
-			       x.GetType() == y.GetType() &&
+			return x.GetType() == y.GetType() &&
 			       x.Name == y.Name &&
 			       _AreEqualMethods(x as MethodBase, y as MethodBase) &&
 			       _AreEqualMethods(x as PropertyInfo, y as PropertyInfo);

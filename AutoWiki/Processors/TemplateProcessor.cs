@@ -56,7 +56,10 @@ namespace AutoWiki.Processors
 			if (member is MethodBase method)
 			{
 				var name = method is ConstructorInfo ? "#ctor" : method.Name;
-				var formattableString = $"{typeInfo.FullName}.{name}({string.Join(",", method.GetParameters().Select(p => p.ParameterType.FullName))})";
+				var parameters = method.GetParameters();
+				var formattableString = parameters.Length == 0
+					                           ? $"{typeInfo.FullName}.{name}"
+					                           : $"{typeInfo.FullName}.{name}({string.Join(",", method.GetParameters().Select(p => p.ParameterType.FullName))})";
 				return formattableString;
 			}
 			else if (member is PropertyInfo property)
