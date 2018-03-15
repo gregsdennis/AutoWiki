@@ -100,9 +100,19 @@ namespace AutoWiki
 			}
 		}
 
+		public static string GetGenericParameterList(this MemberInfo member)
+		{
+			if (!(member is MethodBase method) || method is ConstructorInfo) return null;
+
+			var typeParameters = method.GetGenericArguments();
+			if (!typeParameters.Any()) return null;
+
+			return $"<{string.Join(", ", typeParameters.Select(p => p.CSharpName()))}>";
+		}
+
 		public static string GetLinkKey(this MemberInfo member)
 		{
-			return $"{member.DeclaringType?.FullName}.{member.Name}{member.GetParameterList()}";
+			return $"{member.DeclaringType?.FullName}.{member.Name}{member.GetGenericParameterList()}{member.GetParameterList()}";
 		}
 
 		public static string AsLinkRequest(this Type type)

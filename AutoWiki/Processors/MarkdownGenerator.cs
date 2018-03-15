@@ -222,7 +222,7 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdownForLink(Link link, MethodInfo method)
 		{
-			var markdown = $"{method.ReturnType.AsLinkRequest()} {method.Name}{method.GetParameterList()}";
+			var markdown = $"{method.ReturnType.AsLinkRequest()} {method.Name}{method.GetGenericParameterList()}{method.GetParameterList()}";
 			if (method.IsStatic)
 				markdown = $"static {markdown}";
 

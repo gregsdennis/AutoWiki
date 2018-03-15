@@ -55,11 +55,26 @@ namespace AutoWiki.Processors
 		{
 			if (member is MethodBase method)
 			{
-				var name = method is ConstructorInfo ? "#ctor" : method.Name;
+				var ctor = method as ConstructorInfo;
+				var name = ctor == null ? method.Name : "#ctor";
 				var parameters = method.GetParameters();
-				var formattableString = parameters.Length == 0
-					                           ? $"{typeInfo.FullName}.{name}"
-					                           : $"{typeInfo.FullName}.{name}({string.Join(",", method.GetParameters().Select(p => p.ParameterType.FullName))})";
+				var typeParameters = ctor == null
+					                     ? method.GetGenericArguments().ToList()
+					                     : new List<Type>();
+				var formattableString = $"{typeInfo.FullName}.{name}";
+				if (typeParameters.Any())
+					formattableString += $"``{typeParameters.Count}";
+				if (parameters.Any())
+				{
+					var parameterList = parameters.Select(p =>
+						{
+							var index = typeParameters.IndexOf(p.ParameterType);
+							if (index == -1 || !p.ParameterType.IsGenericParameter)
+								return p.ParameterType.FullName;
+							return $"``{index}";
+						});
+					formattableString += $"({string.Join(",", parameterList)})";
+				}
 				return formattableString;
 			}
 			else if (member is PropertyInfo property)
