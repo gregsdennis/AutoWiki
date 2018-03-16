@@ -80,7 +80,10 @@ namespace AutoWiki.Processors
 			else if (member is PropertyInfo property)
 			{
 				var name = property.Name;
-				var formattableString = $"{typeInfo.FullName}.{name}({string.Join(",", property.GetIndexParameters().Select(p => p.ParameterType.FullName))})";
+				var parameters = string.Join(",", property.GetIndexParameters().Select(p => p.ParameterType.FullName));
+				var formattableString = $"{typeInfo.FullName}.{name}";
+				if (!string.IsNullOrEmpty(parameters))
+					formattableString += $"({parameters})";
 				return formattableString;
 			}
 
