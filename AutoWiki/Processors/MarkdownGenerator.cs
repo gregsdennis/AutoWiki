@@ -71,6 +71,7 @@ namespace AutoWiki.Processors
 			}
 
 			builder.Paragraph($"**Assembly:** {Path.GetFileName(typeDoc.AssociatedType.Assembly.Location)}");
+			builder.Paragraph($"**Namespace:** {typeDoc.AssociatedType.Namespace}");
 
 			// TODO : list base type & implementations
 
