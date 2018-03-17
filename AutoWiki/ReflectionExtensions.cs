@@ -117,7 +117,7 @@ namespace AutoWiki
 
 		public static string AsLinkRequest(this Type type)
 		{
-			return $"[{type.FullName}]()";
+			return $"[{type.FullName ?? type.Name}]()";
 		}
 	}
 }
