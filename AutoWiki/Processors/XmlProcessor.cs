@@ -34,7 +34,9 @@ namespace AutoWiki.Processors
 
 		public static XmlDocumentation GetMemberDetails(this XElement memberNode, string attributeName, XmlDocumentation member)
 		{
-			var nameValue = memberNode.Attribute(attributeName).Value;
+			var nameValue = memberNode.Attribute(attributeName)?.Value;
+			if (nameValue == null) return null;
+
 			var parts = nameValue.Split(":");
 
 			switch (parts[0])

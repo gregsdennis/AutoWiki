@@ -188,7 +188,8 @@ namespace AutoWiki.Processors
 					switch (element.Name.LocalName)
 					{
 						case "see":
-							var xml = element.GetMemberDetails("cref", new XmlDocumentation());
+							var xml = element.GetMemberDetails("cref", new XmlDocumentation()) ??
+							          element.GetMemberDetails("href", new XmlDocumentation());
 							return $"[{xml.MemberName}]()";
 						case "paramref":
 						case "typeparamref":
