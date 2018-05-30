@@ -56,7 +56,8 @@ namespace AutoWiki.Processors
 
 		private static void _GenerateMarkdown(StringBuilder builder, TypeDoc typeDoc)
 		{
-			builder.Header(1, typeDoc.AssociatedType.CSharpName());
+			if (!Options.UseGitHubPagesLinks)
+				builder.Header(1, typeDoc.AssociatedType.CSharpName());
 
 			_GenerateMarkdown(builder, typeDoc.Tags, "summary");
 

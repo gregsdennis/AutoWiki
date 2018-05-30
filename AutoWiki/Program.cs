@@ -30,7 +30,7 @@ namespace AutoWiki
 			}
 
 			var filePerType = args.Any(a => a == _msdnStyleSwitch);
-			Link.UseGitHubPagesLinks = args.Any(a => a == _gitHubPagesSwitch);
+			Options.UseGitHubPagesLinks = args.Any(a => a == _gitHubPagesSwitch);
 			var wikiPath = args.FirstOrDefault(a => !KnownSwitches.Contains(a));
 
 			if (string.IsNullOrWhiteSpace(wikiPath) || !Directory.Exists(wikiPath))
@@ -60,7 +60,7 @@ namespace AutoWiki
 					File = p.FileName
 				}).OrderBy(p => p.File).ToList();
 
-			var fileTemplatePath = Path.Combine(wikiPath, "_template.md");
+			var fileTemplatePath = Path.Combine(wikiPath, "_autowiki-template.md");
 			var fileTemplate = File.Exists(fileTemplatePath)
 				                   ? File.ReadAllText(fileTemplatePath)
 				                   : null;

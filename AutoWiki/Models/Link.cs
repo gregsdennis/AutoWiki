@@ -7,7 +7,6 @@ namespace AutoWiki.Models
 	{
 		public static readonly Regex LinkPattern = new Regex(@"\[(?<name>.*?)]\(.*?\)");
 
-		public static bool UseGitHubPagesLinks { get; set; }
 
 		private string _header;
 
@@ -18,7 +17,7 @@ namespace AutoWiki.Models
 
 		public override string ToString()
 		{
-			var relative = UseGitHubPagesLinks ? "../" : null;
+			var relative = Options.UseGitHubPagesLinks ? "../" : null;
 
 			return $"[{Text}]({relative}{Page}#{Header})";
 		}

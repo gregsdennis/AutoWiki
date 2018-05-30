@@ -31,7 +31,7 @@ namespace AutoWiki.Processors
 
 		private static TypeDoc _GenerateTypeDoc(TypeInfo typeInfo, List<XmlDocumentation> comments, string fileName)
 		{
-			var link = LinkCache.SetLink(typeInfo.FullName, typeInfo.Name, fileName);
+			var link = LinkCache.SetLink(typeInfo.CSharpName(), typeInfo.Name, fileName);
 			link.Markdown = typeInfo.Name;
 
 			var doc = new TypeDoc {AssociatedType = typeInfo.AsType()};

@@ -8,7 +8,8 @@ namespace AutoWiki.Processors
 	internal static class LinkResolver
 	{
 		public static readonly Regex LinkPattern = new Regex(@"\[(?<name>.*?)]\(\)");
-		public static readonly Regex NullablePattern = new Regex(@"Nullable`1\[\[(?<name>[^,]+)");
+		public static readonly Regex NullablePattern = new Regex(@"(?<name>[^,]+)\?");
+		public static readonly Regex TypeParameterPattern = new Regex(@"[<, ](?<name>[^,]+)[>,]");
 
 		public static void ValidateLinks()
 		{
@@ -29,17 +30,24 @@ namespace AutoWiki.Processors
 						type = null;
 					}
 					var resolvedLink = LinkCache.ResolveLink(type?.CSharpName() ?? name);
-					var nullableMatches = NullablePattern.Matches(name);
-					if (nullableMatches.FirstOrDefault()?.Groups["name"].Success ?? false)
-					{
-						var nullableName = nullableMatches.FirstOrDefault().Groups["name"].Value;
-						var nullableLink = LinkCache.ResolveLink(nullableName);
-						if (nullableName != nullableLink)
-							resolvedLink = $"{nullableLink}?";
-					}
+					resolvedLink = _ResolvePartialTypes(NullablePattern, name, resolvedLink);
+					resolvedLink = _ResolvePartialTypes(TypeParameterPattern, name, resolvedLink);
 					link.Markdown = link.Markdown.Replace($"[{name}]()", resolvedLink);
 				}
 			}
+		}
+
+		private static string _ResolvePartialTypes(Regex pattern, string name, string resolvedLink)
+		{
+			var matches = pattern.Matches(name);
+			if (matches.FirstOrDefault()?.Groups["name"].Success ?? false)
+			{
+				var nameComponent = matches[0].Groups["name"].Value;
+				var componentLink = LinkCache.ResolveLink(nameComponent);
+				if (nameComponent != componentLink)
+					return resolvedLink.Replace(nameComponent, componentLink);
+			}
+			return resolvedLink;
 		}
 
 		public static string ResolveLinks(this string page)

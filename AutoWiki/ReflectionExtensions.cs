@@ -112,12 +112,12 @@ namespace AutoWiki
 
 		public static string GetLinkKey(this MemberInfo member)
 		{
-			return $"{member.DeclaringType?.FullName}.{member.Name}{member.GetGenericParameterList()}{member.GetParameterList()}";
+			return $"{member.DeclaringType?.CSharpName()}.{member.Name}{member.GetGenericParameterList()}{member.GetParameterList()}";
 		}
 
 		public static string AsLinkRequest(this Type type)
 		{
-			return $"[{type.FullName ?? type.Name}]()";
+			return $"[{type.CSharpName()}]()";
 		}
 	}
 }
