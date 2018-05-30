@@ -32,7 +32,12 @@ namespace AutoWiki
 
 			var sb = new StringBuilder();
 			var name = type.Name;
-			if (!type.IsGenericType) return name;
+			if (!type.IsGenericType)
+			{
+				if (type.IsNested && !type.IsGenericParameter)
+					name = $"{type.DeclaringType.CSharpName()}.{name}";
+				return name;
+			}
 
 			if (type.GetGenericTypeDefinition() == typeof(Nullable<>)) return $"{CSharpName(type.GetGenericArguments()[0])}?";
 
@@ -41,7 +46,12 @@ namespace AutoWiki
 			sb.Append(string.Join(", ", type.GetGenericArguments()
 			                                .Select(CSharpName)));
 			sb.Append(">");
-			return sb.ToString();
+			name = sb.ToString();
+
+			if (type.IsNested)
+				name = $"{type.DeclaringType.CSharpName()}.{name}";
+
+			return name;
 		}
 
 		public static bool IsPublic(this MemberInfo member)
