@@ -51,6 +51,7 @@ namespace AutoWiki.Processors
 
 			return doc;
 		}
+
 		private static string _GetMemberName(TypeInfo typeInfo, MemberInfo member)
 		{
 			if (member is MethodBase method)
@@ -69,9 +70,16 @@ namespace AutoWiki.Processors
 					var parameterList = parameters.Select(p =>
 						{
 							var index = typeParameters.IndexOf(p.ParameterType);
-							if (index == -1 || !p.ParameterType.IsGenericParameter)
-								return p.ParameterType.FullName;
-							return $"``{index}";
+							if (index != -1 && p.ParameterType.IsGenericParameter) return $"``{index}";
+
+							if (p.ParameterType.IsGenericType)
+							{
+								var genericParameters = p.ParameterType.GetGenericArguments()
+								                         .Select(t => t.FullName);
+								var genericType = p.ParameterType.GetGenericTypeDefinition().FullName.Split('`')[0];
+								return $"{genericType}{{{string.Join(",", genericParameters)}}}";
+							}
+							return p.ParameterType.FullName;
 						});
 					formattableString += $"({string.Join(",", parameterList)})";
 				}
