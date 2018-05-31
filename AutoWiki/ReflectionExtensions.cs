@@ -99,7 +99,21 @@ namespace AutoWiki
 			switch (member)
 			{
 				case MethodBase method:
-					return $"({string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.CSharpName()} {p.Name}"))})";
+					var parameters = method.GetParameters().Select(p =>
+						{
+							string defaultValueText = null;
+							if (p.HasDefaultValue)
+							{
+								defaultValueText = p.DefaultValue == null
+									                   ? (typeof(ValueType).IsAssignableFrom(p.ParameterType) &&
+									                      !(p.ParameterType.IsGenericType && p.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>))
+										                      ? $" = default({p.ParameterType.CSharpName()})"
+										                      : " = null")
+									                   : $" = {p.DefaultValue}";
+							}
+							return $"{p.ParameterType.CSharpName()} {p.Name}{defaultValueText}";
+						});
+					return $"({string.Join(", ", parameters)})";
 				case PropertyInfo property:
 					var indexes = property.GetIndexParameters();
 					if (indexes.Any())
